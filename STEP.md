@@ -1073,7 +1073,7 @@ Step 3, Step 13 (piano), Step 14 (evidenze), Step 7 (checker).
 
 ## Step 16 — Contradiction detection
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato `research/contradictions/detect.ts` (Fase 16). Core deterministico `detectConflicts(evidence, ctx)`: coppie SOLO tra fonti diverse con stessa sotto-domanda e ≥ 2 parole di contenuto condivise; divergenza per (1) anni diversi nello stesso contesto → `temporalNote` + severity `possible` (mai `confirmed`: la fonte recente non è per definizione quella giusta), (2) numeri (non anni) completamente diversi nel contesto → `confirmed`, (3) negazione esplicita (`non/no/not/never/mai/niente/nessuno`) vs affermazione su parola condivisa → `confirmed`. `Conflict` con id deterministico (`conf-{sub}:{idA}+{idB}` ordinati), `topic` = prime 3-5 keyword condivise, `statements` con entrambe le posizioni (passaggio troncato a 400 char) — nessuna posizione eliminata, nessun ordinamento per "verità". Classificazione LLM opzionale `classifyConflicts` (schema JSON strict): vincoli ASSOLUTI — mai suggerire quale fonte sia vera; `keep:false` SOLO con `reason: lexical-false-positive` (proposta di eliminazione non lessicale RIFIUTATA e loggata); risposta con id estranei/mancanti o invalida → verdetto deterministico (resta tutto); abort propagato. Test: 14 dedicati (10 detect + 4 classify); suite: 276 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 
