@@ -15,6 +15,8 @@ import { assessCoverage } from "@/research/verification/coverage";
 import { detectConflicts } from "@/research/contradictions/detect";
 import { runResearch } from "@/research/engine/engine";
 import type { EngineDeps, RankedWithScore } from "@/research/engine/deps";
+import { synthesizeReport } from "@/research/synthesis/synthesize";
+import { mapCitations as mapCitationsReal } from "@/research/citations/map";
 import type { RawDocument } from "@/research/fetch/fetcher";
 import type { SearchOutcome } from "@/lib/server/search/searxng";
 
@@ -116,35 +118,30 @@ function buildRealDeps(): EngineDeps {
       return detectConflicts(evidences);
     },
     async synthesize(input) {
+      // moduli REALI (Step 18-19): nessun LLM configurato nei test →
+      // l'esecuzione usa la sintesi di fallback deterministica.
+      const result = await synthesizeReport({
+        researchId: input.researchId,
+        question: input.question,
+        plan: input.plan,
+        evidences: input.evidences,
+        sourceRecords: input.sourceRecords,
+        conflicts: input.conflicts,
+        limitations: input.limitations,
+      });
       return {
-        sections: [
-          {
-            heading: "Risposta",
-            paragraphs: [
-              {
-                text: `Sintesi su ${input.evidences.length} evidenze da fonti analizzate.`,
-                citations: input.evidences.map((_e, i) => i + 1),
-              },
-            ],
-          },
-        ],
-        claims: input.evidences.map((e, i) => ({
-          id: `claim-${i}`,
-          text: e.passage.slice(0, 200),
-          kind: "fact" as const,
-          supportEvidenceIds: [e.id],
-        })),
+        sections: result.sections,
+        claims: result.claims,
+        usedFallback: result.usedFallback,
+        llmError: result.llmError,
       };
     },
-    async mapCitations({ evidences, sourceRecords }) {
-      return evidences.map((e, i) => ({
-        index: i + 1,
-        evidenceId: e.id,
-        sourceId: e.sourceId,
-        url: e.url,
-        title: sourceRecords.find((r) => r.sourceId === e.sourceId)?.title ?? "",
-        passage: e.passage.slice(0, 400),
-      }));
+    async mapCitations(input) {
+      return mapCitationsReal({
+        sections: input.sections,
+        evidences: input.evidences,
+        sourceRecords: input.sourceRecords,
+      });
     },
   };
 }
@@ -191,9 +188,16 @@ describe("integrazione: motore con moduli reali", () => {
     }
     expect(report.sourcesUsed.every((id) => analyzedIds.has(id))).toBe(true);
 
-    // copertura sufficiente con 2 fonti indipendenti -> completed senza limiti
-    expect(report.status).toBe("completed");
+    // copertura sufficiente con 2 fonti indipendenti; LLM non configurato nel
+    // test → sintesi di fallback deterministica marcata (status partial, ma
+    // senza gap di fonti e con sezioni reali costruite SOLO da evidenze)
     expect(report.limitations.missingSources).toBe(false);
+    expect(report.limitations.llmUnavailable).toBe(true);
+    expect(report.status).toBe("partial");
+    expect(report.sections.length).toBeGreaterThan(0);
+    const sectionText = report.sections.map((s) => s.paragraphs.map((p) => p.text).join("\n")).join("\n");
+    expect(sectionText).toContain("Sintesi meccanica senza LLM");
+    expect(sectionText).toContain("fu fondata nell'anno 1343");
   });
 
   it("pagina irraggiungibile tra i risultati → contatore fetchFailed, il resto continua", async () => {

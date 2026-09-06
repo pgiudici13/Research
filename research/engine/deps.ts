@@ -3,9 +3,9 @@
 // Step 7-19, nei test da fake deterministici. Nessuna rete, nessuno stato
 // globale: ogni porta riceve il contesto della ricerca.
 //
-// Nota: la sintesi (Step 18) e le citazioni (Step 19) sono porte iniettate:
-// il motore può essere verificato con fake; il completamento formale richiede
-// gli Step 18-19 reali (vedi DoD dello Step 17 in STEP.md).
+// Nota: la sintesi (Step 18) e le citazioni (Step 19) sono porte iniettate e
+// ora implementate dai moduli reali (research/synthesis + research/citations):
+// il motore resta verificabile anche con fake deterministici nei test.
 
 import type { Logger } from "@/lib/logger";
 import type {
@@ -76,6 +76,10 @@ export interface SynthesisInput {
 export interface SynthesisOutput {
   sections: ReportSection[];
   claims: Claim[];
+  /** True se la sintesi è stata generata senza LLM (fallback deterministico). */
+  usedFallback?: boolean;
+  /** Errore LLM normalizzato (safe), presente solo con `usedFallback`. */
+  llmError?: ErrorInfo;
 }
 
 /** Input per il mapping delle citazioni (Step 19): solo fonti analizzate. */

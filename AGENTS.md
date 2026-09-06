@@ -4,13 +4,13 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–17 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–19 di `STEP.md`):
 
-- repository con 21 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (scanner attivo), `app/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress), `tests/` (287 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 24 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (scanner attivo), `app/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (325 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
-- modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti) e `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink); dettagli e albero completo in §5;
-- NON ancora presenti: API route, `app/api/`, sintesi/citazioni (Step 18–19), frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
+- modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); dettagli e albero completo in §5;
+- NON ancora presenti: API route, `app/api/`, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -64,7 +64,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–17 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–19 completati):
 
 ```text
 AGENTS.md
@@ -106,6 +106,7 @@ lib/
     llm/
       nvidia.ts            (client /chat/completions OpenAI-compatible)
       structured.ts        (chatJson: output JSON validato + retry di rigenerazione)
+      prompts.ts           (prompt di sintesi versionato; evidenze come dati nel user)
     search/
       searxng.ts           (client SearXNG JSON: outcome, parsing, normalizzazione)
 research/
@@ -137,6 +138,11 @@ research/
     engine.ts              (runResearch: loop round/fasi, stop/cancel/timeout, report)
   progress/
     sink.ts                (ProgressSink astratto + createMemorySink per i test)
+  synthesis/
+    synthesize.ts          (report da sole evidenze: LLM + validazione + fallback)
+    fallback.ts            (sintesi deterministica senza LLM, marcata)
+  citations/
+    map.ts                 (tabella deterministica, validazione, claim derivati)
 tests/
   smoke.test.ts
   fixtures/
@@ -161,11 +167,13 @@ tests/
     research/verification/ (test di coverage.ts e checker.ts)
     research/contradictions/ (test di detect.ts e classify con mock)
     research/engine/       (test unit del motore con fake deterministici)
+    research/synthesis/    (test di synthesize.ts, fallback.ts e prompt)
+    research/citations/    (test di map.ts: determinismo e invarianti)
   integration/
     research-engine.test.ts (motore con dipendenze fake + fixture HTML reali)
 ```
 
-Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/synthesis/` e `research/citations/`, `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
+Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
 
 ## 6. Pipeline Deep Research
 

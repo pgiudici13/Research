@@ -1195,7 +1195,7 @@ Step 2 (budget), Step 7–16 (tutti i moduli), Step 3 (report types). La sintesi
 - [x] nessuna possibilità di loop infinito (invariante testata)
 - [x] nessun fetch duplicato intra-run (cache per-run)
 - [x] integration test con fake verdi
-- [ ] note: integrazione finale con sintesi/citazioni reali completata con gli Step 18–19 e riverificata qui (richiede Step 18–19)
+- [x] integrazione finale riverificata: il motore ora usa la sintesi reale (Step 18) e il citation mapping reale (Step 19); l'integration test `tests/integration/research-engine.test.ts` gira con moduli reali (LLM assente → fallback deterministico marcato, status partial) e le citazioni rispettano le invarianti di budget/fonti
 
 ---
 
@@ -1304,7 +1304,7 @@ Step 3, Step 14 (evidenze), Step 10 (SourceRecord), Step 18 (si integra con la t
 - [x] validazione chiavi citate con retry/fallback lato sintesi (implementata nello Step 18, che consuma la tabella)
 - [x] `sourcesConsulted` vs `sourcesUsed` distinti nel report (in `assembleReport` dello Step 17)
 - [x] invarianti testate (nessuna fonte non analizzata citabile)
-- [ ] test verdi; typecheck verde; integration engine verde (con sintesi/citazioni reali: completata nello Step 18)
+- [x] test verdi; typecheck verde; integration engine verde (girato con sintesi/citazioni reali dopo lo Step 18)
 
 ---
 

@@ -473,6 +473,15 @@ export async function runResearch(
       });
       sections = output.sections;
       claims = output.claims;
+      if (output.usedFallback === true) {
+        limitations.llmUnavailable = true;
+        noteLimitation(
+          output.llmError?.code ?? "E_LLM_UNAVAILABLE",
+          output.llmError?.code === "E_LLM_INVALID_RESPONSE"
+            ? "Sintesi generata senza LLM: output del modello non valido."
+            : "Sintesi generata senza LLM (modalità degradata).",
+        );
+      }
       citations = await deps.mapCitations({
         sections,
         claims,
