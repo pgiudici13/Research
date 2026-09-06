@@ -10,7 +10,7 @@ import type { ProgressSink } from "@/research/progress/sink";
 import type { SourceCandidate } from "@/lib/types";
 import { planResearch } from "@/research/planning/planner";
 import { searchSearxng } from "@/lib/server/search/searxng";
-import { searchDuckDuckGo } from "@/lib/server/search/duckduckgo";
+import { compactSearchQuery, searchDuckDuckGo } from "@/lib/server/search/duckduckgo";
 import { rankCandidates } from "@/research/scoring/score";
 import { fetchPage } from "@/research/fetch/fetcher";
 import { extractPage } from "@/research/extract/html";
@@ -42,6 +42,24 @@ export function buildResearchDeps(
         logger: ctx.logger ?? logger,
       });
       if (primary.ok && !primary.empty) return primary;
+
+      // Le query del planner sono deliberatamente ricche di contesto, ma alcuni
+      // engine SearXNG restituiscono zero risultati per interrogazioni troppo
+      // lunghe. Riproviamo il Pi con le parole chiave essenziali prima di
+      // passare al fallback esterno.
+      const compact = compactSearchQuery(query.query);
+      if (compact) {
+        (ctx.logger ?? logger)?.info("search.searxng_compact_retry", {
+          researchId: ctx.researchId,
+          originalLength: query.query.length,
+          compactLength: compact.length,
+        });
+        const compactPrimary = await searchSearxng(
+          { ...query, query: compact },
+          { signal: ctx.signal, logger: ctx.logger ?? logger },
+        );
+        if (compactPrimary.ok && !compactPrimary.empty) return compactPrimary;
+      }
       (ctx.logger ?? logger)?.warn("search.duckduckgo_fallback", { researchId: ctx.researchId });
       const fallback = await searchDuckDuckGo(query, ctx);
       return fallback.ok && !fallback.empty ? fallback : primary;

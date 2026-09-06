@@ -19,7 +19,7 @@ const STOP_WORDS = new Set([
   "the", "who", "what", "which", "is", "are", "of", "the", "and", "for",
 ]);
 
-function queryVariants(query: string): string[] {
+export function compactSearchQuery(query: string): string | undefined {
   const compact = query
     .replace(/[^\p{L}\p{N}._-]+/gu, " ")
     .split(/\s+/)
@@ -27,7 +27,12 @@ function queryVariants(query: string): string[] {
     .filter((word) => word.length >= 3 && !STOP_WORDS.has(word))
     .slice(0, 8)
     .join(" ");
-  return compact && compact !== query.trim() ? [query, compact] : [query];
+  return compact && compact !== query.trim() ? compact : undefined;
+}
+
+function queryVariants(query: string): string[] {
+  const compact = compactSearchQuery(query);
+  return compact ? [query, compact] : [query];
 }
 
 function decodeHtml(value: string): string {
