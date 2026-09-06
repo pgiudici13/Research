@@ -112,6 +112,8 @@ research/
   urls/
     canonical.ts           (canonicalizzazione URL: tracking, query, chiavi)
     dedupe.ts              (deduplica risultati, merge candidati multi-round)
+  fetch/
+    fetcher.ts             (fetch SSRF-guarded: redirect ri-validati, tetto byte, content-type)
 tests/
   smoke.test.ts
   fixtures/
@@ -127,6 +129,7 @@ tests/
     server/llm/            (test di nvidia.ts e structured.ts)
     server/search/         (test del client SearXNG)
     research/urls/         (test di canonical.ts e dedupe.ts)
+    research/fetch/        (test del fetcher con server HTTP locale)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (fetch/extract, scoring, pipeline e motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.

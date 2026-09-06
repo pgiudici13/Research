@@ -758,7 +758,7 @@ Step 3 (tipi), Step 8 (formato input; la funzione è comunque pura e testabile d
 
 ## Step 10 — Fetch delle pagine con protezione SSRF e limiti
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato `research/fetch/fetcher.ts` con `fetchPage(url, ctx)` → `FetchOutcome`/`RawDocument` (non lancia mai tranne AbortError utente). Guardia SSRF (`assertSafeHttpUrl`) su OGNI hop di redirect (redirect manuali, max 5, Location assente o eccesso → errore); tetto byte con lettura in stream e `truncated`; content-type: assente tollerato, altrimenti accettati text/html/xhtml/plain; PDF piccolo → `E_FETCH_UNSUPPORTED`, oltre il tetto → `E_FETCH_TOO_LARGE` (entrambi raggiungibili); 404/410 non ritentabili, 429/5xx ritentabili (1 retry); timeout 15s via AbortSignal (cancella davvero il fetch). Test con server HTTP locale + proxy su host "pubblico" finto + lookup DNS iniettato (nessuna rete esterna): 11 dedicati; suite: 137 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 
