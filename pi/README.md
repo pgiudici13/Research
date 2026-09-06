@@ -172,6 +172,35 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer <token>" \
 
 ## Cloudflare Tunnel
 
+### Prova gratuita senza login (Quick Tunnel)
+
+Per una verifica temporanea non usare `cloudflared tunnel login`: avvia
+direttamente un Quick Tunnel verso Caddy:
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:8080
+```
+
+Il comando stampa un URL temporaneo `https://<nome>.trycloudflare.com`.
+Lascia il processo attivo e usa quell'URL come `SEARXNG_BASE_URL` nel backend
+(senza aggiungere `/search`). Il token applicativo resta obbligatorio perché
+la destinazione è Caddy, non SearXNG direttamente:
+
+```bash
+curl -sS -H "Authorization: Bearer $RESEARCH_INTERNAL_AUTH_TOKEN" \
+  "https://<nome>.trycloudflare.com/search?q=test&format=json"
+```
+
+Se il curl risponde `200` con JSON, configura su Vercel lo stesso URL e lo
+stesso `RESEARCH_INTERNAL_AUTH_TOKEN`, quindi riprova una ricerca. L'URL
+cambia quando il processo termina o viene riavviato; è quindi adatto a test e
+sviluppo, non a un deploy stabile. Non eseguire `tunnel login` per questo
+percorso.
+
+Nota: il Quick Tunnel non va usato per esporre una UI o uno stream SSE. Qui il
+traffico Vercel→Pi è una richiesta HTTP JSON ordinaria verso SearXNG, mentre lo
+stream NDJSON della ricerca resta tra browser e API Next.js.
+
 1. Installare `cloudflared` (binario ufficiale arm64):
 
    ```bash

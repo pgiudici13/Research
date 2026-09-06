@@ -10,6 +10,7 @@ import type { ProgressSink } from "@/research/progress/sink";
 import type { SourceCandidate } from "@/lib/types";
 import { planResearch } from "@/research/planning/planner";
 import { searchSearxng } from "@/lib/server/search/searxng";
+import { searchDuckDuckGo } from "@/lib/server/search/duckduckgo";
 import { rankCandidates } from "@/research/scoring/score";
 import { fetchPage } from "@/research/fetch/fetcher";
 import { extractPage } from "@/research/extract/html";
@@ -35,11 +36,16 @@ export function buildResearchDeps(
         now: ctx.now(),
       });
     },
-    search: (query, ctx) =>
-      searchSearxng(query, {
+    search: async (query, ctx) => {
+      const primary = await searchSearxng(query, {
         signal: ctx.signal,
         logger: ctx.logger ?? logger,
-      }),
+      });
+      if (primary.ok && !primary.empty) return primary;
+      (ctx.logger ?? logger)?.warn("search.duckduckgo_fallback", { researchId: ctx.researchId });
+      const fallback = await searchDuckDuckGo(query, ctx);
+      return fallback.ok && !fallback.empty ? fallback : primary;
+    },
     async rank(candidates: readonly SourceCandidate[], scoreCtx) {
       const ranked = rankCandidates([...candidates], scoreCtx);
       return ranked.map(

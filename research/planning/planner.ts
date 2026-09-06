@@ -221,6 +221,7 @@ export async function planResearch(request: PlanRequest): Promise<PlanResult> {
       maxTokens: limits.plannerMaxTokens,
       temperature: 0.2,
       jsonMode: true,
+      maxAttempts: 1,
       signal: request.signal,
       fetchImpl: request.fetchImpl,
       logger,
