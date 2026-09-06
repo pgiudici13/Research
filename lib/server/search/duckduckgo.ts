@@ -13,6 +13,22 @@ const ENDPOINTS = [
   "https://duckduckgo.com/html/",
 ] as const;
 const USER_AGENT = "DeepResearch/0.1 (server; fallback search)";
+const STOP_WORDS = new Set([
+  "chi", "che", "cosa", "come", "quale", "quali", "sono", "ha", "il", "la", "le", "lo",
+  "gli", "di", "del", "della", "dei", "degli", "in", "per", "con", "una", "un", "e", "o",
+  "the", "who", "what", "which", "is", "are", "of", "the", "and", "for",
+]);
+
+function queryVariants(query: string): string[] {
+  const compact = query
+    .replace(/[^\p{L}\p{N}._-]+/gu, " ")
+    .split(/\s+/)
+    .map((word) => word.toLocaleLowerCase())
+    .filter((word) => word.length >= 3 && !STOP_WORDS.has(word))
+    .slice(0, 8)
+    .join(" ");
+  return compact && compact !== query.trim() ? [query, compact] : [query];
+}
 
 function decodeHtml(value: string): string {
   return value
@@ -58,16 +74,18 @@ export async function searchDuckDuckGo(
   const timeout = setTimeout(() => controller.abort(), getLimits().searchTimeoutMs);
   try {
     const signal = ctx.signal ? AbortSignal.any([ctx.signal, controller.signal]) : controller.signal;
-    for (const endpoint of ENDPOINTS) {
-      const url = new URL(endpoint);
-      url.searchParams.set("q", query.query);
-      const response = await fetchImpl(url, {
-        headers: { Accept: "text/html", "User-Agent": USER_AGENT },
-        signal,
-      });
-      if (!response.ok) continue;
-      const items = parseDuckDuckGoResults(await response.text());
-      if (items.length > 0) return { ok: true, empty: false, items };
+    for (const variant of queryVariants(query.query)) {
+      for (const endpoint of ENDPOINTS) {
+        const url = new URL(endpoint);
+        url.searchParams.set("q", variant);
+        const response = await fetchImpl(url, {
+          headers: { Accept: "text/html", "User-Agent": USER_AGENT },
+          signal,
+        });
+        if (!response.ok) continue;
+        const items = parseDuckDuckGoResults(await response.text());
+        if (items.length > 0) return { ok: true, empty: false, items };
+      }
     }
 
     return { ok: true, empty: true, items: [] };
