@@ -810,7 +810,7 @@ Step 5/6 (SSRF, errori, timeout), Step 9 (canonical url finale).
 
 ## Step 11 — Estrazione testo e metadati da HTML
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `research/extract/text.ts` (pulizia/truncate/split deterministi + leggibilità) e `research/extract/html.ts` (`extractPage(doc, ctx)` → `ExtractedPage`, mai lancia). Nessuna dipendenza di parsing: scan conservativo con rimozione a blocchi bilanciati di script/style/noscript/template/svg/canvas/iframe/form/nav/header/footer/aside (+ elementi `hidden`/`aria-hidden="true"`); `title`/og/meta autore+data+lang; date normalizzate `YYYY-MM-DD` solo se valide; separatori di riga su `</p>`, heading, `li`, blocchi; fallback titolo+`og:description` se testo < 80 char; pagina vuota → `text: ""` (stato, non crash); tag non chiusi → taglio conservativo senza crash; charset da `<meta charset>` (UTF-8 default, il fetcher già normalizza il content-type); `text/plain` trattato come dato senza unescape. Cap testo `pageTextMaxChars` con `truncated`. Deviazione documentata: la decodifica usa il `<meta charset>` perché lo Step 10 conserva solo il mime del content-type. Fixture `tests/fixtures/html/*` (5) incluse injection come dato; 29 test dedicati; suite: 166 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 

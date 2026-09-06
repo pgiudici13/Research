@@ -4,13 +4,13 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–9 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–11 di `STEP.md`):
 
-- repository con 10 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (placeholder), `app/`, `lib/`, `research/urls/`, `tests/` (126 test verdi), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 12 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch ed estrazione pagine);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (placeholder), `app/`, `lib/`, `research/` (urls, fetch, extract), `tests/` (166 test verdi), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
-- modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione e deduplica); dettagli e albero completo in §5;
-- NON ancora presenti: API route, `app/api/`, motore di ricerca (`research/engine` e pipeline), planner, fetch/extract pagine, sintesi/citazioni, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
+- modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded) e `research/extract/` (testo leggibile da HTML); dettagli e albero completo in §5;
+- NON ancora presenti: API route, `app/api/`, motore di ricerca (`research/engine` e pipeline), planner, sintesi/citazioni, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -114,11 +114,15 @@ research/
     dedupe.ts              (deduplica risultati, merge candidati multi-round)
   fetch/
     fetcher.ts             (fetch SSRF-guarded: redirect ri-validati, tetto byte, content-type)
+  extract/
+    text.ts                (normalizza/tronca/spezza passaggi, leggibilità)
+    html.ts                (HTML -> testo: blocchi rimossi, metadati, fallback, charset)
 tests/
   smoke.test.ts
   fixtures/
     nvidia/                (successo, 401, 500, content non stringa, body malformato)
     searxng/               (risultati ok/empty, body malformato, errore 500)
+    html/                  (article, article-with-nav, injection, minimal, no-title)
   unit/
     config/                (test di env.ts e limits.ts)
     types/                 (test di serializzabilità/completezza dei tipi)
@@ -130,9 +134,10 @@ tests/
     server/search/         (test del client SearXNG)
     research/urls/         (test di canonical.ts e dedupe.ts)
     research/fetch/        (test del fetcher con server HTTP locale)
+    research/extract/      (test di text.ts e html.ts con fixture)
 ```
 
-Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (fetch/extract, scoring, pipeline e motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
+Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (scoring, planning, evidence, verifica, contraddizioni, sintesi, citazioni, motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
 
 ## 6. Pipeline Deep Research
 
