@@ -64,7 +64,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–7 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–9 completati):
 
 ```text
 AGENTS.md
@@ -108,6 +108,10 @@ lib/
       structured.ts        (chatJson: output JSON validato + retry di rigenerazione)
     search/
       searxng.ts           (client SearXNG JSON: outcome, parsing, normalizzazione)
+research/
+  urls/
+    canonical.ts           (canonicalizzazione URL: tracking, query, chiavi)
+    dedupe.ts              (deduplica risultati, merge candidati multi-round)
 tests/
   smoke.test.ts
   fixtures/
@@ -122,9 +126,10 @@ tests/
     http/                  (test di timeout, retry e guardia SSRF)
     server/llm/            (test di nvidia.ts e structured.ts)
     server/search/         (test del client SearXNG)
+    research/urls/         (test di canonical.ts e dedupe.ts)
 ```
 
-Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (canonical/dedupe e poi pipeline/motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
+Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (fetch/extract, scoring, pipeline e motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
 
 ## 6. Pipeline Deep Research
 

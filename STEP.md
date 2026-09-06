@@ -708,7 +708,7 @@ Step 2 (env), Step 4/5/6.
 
 ## Step 9 — Normalizzazione e deduplicazione URL
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `research/urls/canonical.ts` (`TRACKING_PARAMS`/`isTrackingParam`, `canonicalizeUrl` → URL|null con host lowercase/porta default rimossa/frammento via/query ordinata senza tracking né vuoti, `dedupeKey` = scheme://host+path+query, `isSameResource`, `domainOf`) e `research/urls/dedupe.ts` (`dedupeSearchResults` → engine fusi + `occurrences`, `mergeCandidates` multi-round che conserva il primo `sourceId`; risorse diverse mai fuse). Non segue redirect (li gestisce il fetcher). Test: 126 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 
