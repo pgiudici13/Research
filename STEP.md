@@ -1260,7 +1260,7 @@ Step 3 (tipi report), Step 7 (chatJson), Step 14–16 (evidenze/conflitti), Step
 
 ## Step 19 — Citation mapping deterministico e assemblaggio report
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato `research/citations/map.ts` con funzioni pure deterministiche. `buildCitationTable(evidences, records)` ordina per `sourceId`/`passageIndex`/`id` (indici 1..n), esclude evidenze di fonti con `status !== "fetched"` (mai citare una fonte non analizzata), deduplica per evidenceId, tronca il passaggio a 400 char; url/title arrivano SOLO dal `SourceRecord` (mai dal modello). `resolveReportCitations(sections, table)` non lancia: ritorna sezioni ripulite (numeri invalidi rimossi), `invalidKeys`, `usedEvidenceIds` e `usedIndexes` in ordine di primo utilizzo (anche numeri non interi respinti). `deriveClaims(sections, table)` genera i `Claim` in modo deterministico (uno per paragrafo con `kind` esplicito e ≥ 1 citazione valida; `supportEvidenceIds` dalle citazioni; testo del paragrafo; mai contenuti aggiunti). `mapCitations(input)` è la porta del motore: tabella + risoluzione → lista `Citation[]` SOLO delle voci effettivamente citate, in ordine di primo utilizzo (backstop silenzioso per chiavi residue invalide). Deviazione documentata: l'assemblaggio finale del `ResearchReport` vive già in `assembleReport` dello Step 17 (engine), quindi `buildReport` separato non serve: questo modulo produce tabella/validazione/claims. Test: 11 dedicati (ordinamento/determinismo, fonte non fetched esclusa, chiave invalida rilevata e rimossa, fonte analizzata mai citata → fuori da citations/sourcesUsed, claims derivati); typecheck/lint puliti. L'integrazione nel motore con sintesi e citazioni reali è riverificata nello Step 18 (vedi DoD Step 17).
 
 ### Obiettivo
 
@@ -1300,11 +1300,11 @@ Step 3, Step 14 (evidenze), Step 10 (SourceRecord), Step 18 (si integra con la t
 
 ### Definition of Done
 
-- [ ] tabella citazioni deterministica costruita solo da evidenze usate
-- [ ] validazione chiavi citate con retry/fallback lato sintesi
-- [ ] `sourcesConsulted` vs `sourcesUsed` distinti nel report
-- [ ] invarianti testate (nessuna fonte non analizzata citabile)
-- [ ] test verdi; typecheck verde; integration engine verde
+- [x] tabella citazioni deterministica costruita solo da evidenze usate
+- [x] validazione chiavi citate con retry/fallback lato sintesi (implementata nello Step 18, che consuma la tabella)
+- [x] `sourcesConsulted` vs `sourcesUsed` distinti nel report (in `assembleReport` dello Step 17)
+- [x] invarianti testate (nessuna fonte non analizzata citabile)
+- [ ] test verdi; typecheck verde; integration engine verde (con sintesi/citazioni reali: completata nello Step 18)
 
 ---
 
