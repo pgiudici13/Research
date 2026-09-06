@@ -1369,7 +1369,7 @@ Step 3 (tipi progress), Step 17 (sink usato dall'engine).
 
 ## Step 21 — API Backend (route Vercel) con streaming NDJSON
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: create `app/api/research/route.ts` e `app/api/health/route.ts` (runtime nodejs, maxDuration 60 legato a `RESEARCH_TIMEOUT_MS` + margine) + `lib/server/rate-limit.ts` (InMemoryRateLimiter puro con clock iniettabile: sliding window N/ora + M concorrenti per IP, cleanup bucket scaduti, default 5/ora e 2 concorrenti) + `lib/server/research/deps.ts` (assemblaggio delle port REALI del motore: planner/SearXNG/ranking/fetcher/extract/evidenze/coverage/contraddizioni/synthesize/mapCitations). `POST /api/research`: body ≤ 16 KB con parse+validazione strict (question 10..1000 dopo trim, opzioni con campi sconosciuti rifiutati, depth/maxSources clampati ai limiti runtime, freshness/lang validati) → 400 `ApiErrorBody E_VALIDATION` con `requestId` (= clientRequestId o generato); rate limit per IP (x-forwarded-for) → 429 `E_RATE_LIMIT` con Retry-After; poi risposta `application/x-ndjson` con header `X-Research-Id`/`X-Request-Id`, motore lanciato nella stessa richiesta con `researchId` preassegnato (header + eventi coerenti; aggiunto `researchId?` a ResearchRunInput, additivo) e sink di streaming NDJSON (`createStreamSink` dello Step 20). Annullamento: `AbortController` interno collegato a `req.signal` e alla `cancel()` dello stream (disconnessione) → il motore si ferma pulito; errori imprevisti → evento `error` + `done failed`, mai stack trace; nessun segreto negli eventi/risposte. `GET /api/health`: 200 `{ok, service, time}` senza dettagli infrastrutturali. Test: unit rate-limit 5 (finestra/concorrenza/cleanup/reset) + integration API 10 (2 file: streaming reale senza rete → report failed onesto con `searchUnavailable`, validazioni 400, clamp opzioni, 429 rate limit per IP, wiring annullamento con motore mockato su req.signal e su cancel dello stream). Suite: 352 verdi (38 file); typecheck/lint/build puliti.
 
 ### Obiettivo
 
@@ -1414,11 +1414,11 @@ Step 17 (engine), Step 20 (eventi/sink), Step 5 (toErrorInfo), Step 2 (limits), 
 
 ### Definition of Done
 
-- [ ] `POST /api/research` con streaming NDJSON, validazione e rate limit
-- [ ] `GET /api/health` minimale senza dettagli infrastrutturali
-- [ ] disconnessione/annullamento propagato al motore
-- [ ] errori pre-stream e in-stream non sensibili
-- [ ] test integration verdi; typecheck/build verdi
+- [x] `POST /api/research` con streaming NDJSON, validazione e rate limit
+- [x] `GET /api/health` minimale senza dettagli infrastrutturali
+- [x] disconnessione/annullamento propagato al motore
+- [x] errori pre-stream e in-stream non sensibili
+- [x] test integration verdi; typecheck/build verdi
 
 ---
 

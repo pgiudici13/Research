@@ -41,6 +41,8 @@ import type { EngineDeps } from "./deps";
 export interface ResearchRunInput {
   question: string;
   options?: ResearchOptions;
+  /** Id predefinito (es. dall'API per l'header X-Research-Id); default: generato. */
+  researchId?: string;
 }
 
 /** FNV-1a (32 bit, hex) per id deterministici di fonte dal canonicalUrl. */
@@ -114,7 +116,9 @@ export async function runResearch(
 ): Promise<ResearchReport> {
   const startedAt = deps.now();
   const startedMs = startedAt.getTime();
-  const researchId = `res-${startedMs.toString(36)}-${fnv1aHex(Math.random().toString()).slice(0, 6)}`;
+  const researchId =
+    input.researchId ??
+    `res-${startedMs.toString(36)}-${fnv1aHex(Math.random().toString()).slice(0, 6)}`;
   const logger = deps.logger ?? createLogger("engine");
   const limits = getLimits();
   const budget = new RunBudget({ limits, options: input.options, startedAt: startedMs });
