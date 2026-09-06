@@ -1,0 +1,7 @@
+{
+  "error": {
+    "message": "Invalid authentication credentials",
+    "type": "authentication_error",
+    "code": 401
+  }
+}

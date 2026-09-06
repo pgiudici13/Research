@@ -1,0 +1,11 @@
+{
+  "id": "chatcmpl-test-2",
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": 12345 },
+      "finish_reason": "stop"
+    }
+  ]
+}

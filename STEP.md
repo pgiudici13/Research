@@ -596,7 +596,7 @@ Step 4 (guard), Step 5 (errori/logger).
 
 ## Step 7 — Client NVIDIA API (server-only, OpenAI-compatible)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `lib/server/llm/nvidia.ts` (chatCompletion con stato `unconfigured`, header Bearer, timeout via AbortSignal.timeout+any che cancella davvero il fetch, retry HTTP su 429/5xx/rete, 4xx mai ritentati e body mai riflessi, `normalizeChatResponse`, `llmConfigured`) e `lib/server/llm/structured.ts` (`chatJson` con guard tipizzata e retry di rigenerazione su JSON/schema invalido, `buildValidationErrorPath`; gli errori di infrastruttura NON vengono mascherati). Deviazione minore: il timeout usa AbortSignal invece del solo race di `withTimeout` (annulla il fetch). Fixture `tests/fixtures/nvidia/`. Test: 98 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 

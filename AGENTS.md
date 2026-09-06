@@ -64,7 +64,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1 completato):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–7 completati):
 
 ```text
 AGENTS.md
@@ -102,16 +102,24 @@ lib/
     timeout.ts             (withTimeout senza timer leak)
     retry.ts               (backoff esponenziale + jitter, AbortSignal, retryable)
     ssrf.ts                (guardia SSRF: IP/hostname privati, lookup DNS, allowlist fissa)
+  server/                  (MAI importato da codice client)
+    llm/
+      nvidia.ts            (client /chat/completions OpenAI-compatible)
+      structured.ts        (chatJson: output JSON validato + retry di rigenerazione)
 tests/
   smoke.test.ts
-  unit/config/             (test di env.ts e limits.ts)
-  unit/types/              (test di serializzabilità/completezza dei tipi)
-  unit/validate/           (test di schema.ts e json.ts)
-  unit/errors.test.ts      (catalogo errori e safety di toErrorInfo)
-  unit/logger.test.ts      (redazione, livelli, correlazione)
+  fixtures/nvidia/         (successo, 401, 500, content non stringa, body malformato)
+  unit/
+    config/                (test di env.ts e limits.ts)
+    types/                 (test di serializzabilità/completezza dei tipi)
+    validate/              (test di schema.ts e json.ts)
+    errors.test.ts         (catalogo errori e safety di toErrorInfo)
+    logger.test.ts         (redazione, livelli, correlazione)
+    http/                  (test di timeout, retry e guardia SSRF)
+    server/llm/            (test di nvidia.ts e structured.ts)
 ```
 
-Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/` (config, tipi, validate, errori, logger, http, server/llm, server/search), `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti), `.env.example`. Nominare i percorsi effettivi in questo file quando il codice esisterà.
+Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/server/search/` (SearXNG), `lib/server/llm/prompts.ts`, `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
 
 ## 6. Pipeline Deep Research
 
