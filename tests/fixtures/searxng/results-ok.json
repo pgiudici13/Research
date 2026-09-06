@@ -1,0 +1,44 @@
+{
+  "query": "test query",
+  "number_of_results": 4,
+  "results": [
+    {
+      "url": "https://example.com/a?utm_source=x&x=1",
+      "title": "Title A",
+      "content": "Snippet A abbastanza lungo per il test di normalizzazione.",
+      "engine": "google",
+      "publishedDate": "2024-05-01T00:00:00+00:00",
+      "positions": [1],
+      "score": 0.9,
+      "category": "general"
+    },
+    {
+      "url": "/relative/path",
+      "title": "Relative page",
+      "content": "Snippet relativo.",
+      "engine": "duckduckgo"
+    },
+    {
+      "url": "https://example.com/b",
+      "title": "Bad date",
+      "content": "La data non è ISO, va scartata.",
+      "engine": "bing",
+      "publishedDate": "non-iso-date"
+    },
+    {
+      "url": 12345,
+      "title": "Broken item",
+      "content": "Questo item va scartato senza far fallire la risposta.",
+      "engine": "google"
+    },
+    {
+      "url": "ftp://not-allowed.example/file",
+      "title": "Schema errato",
+      "content": "Va scartato.",
+      "engine": "mojeek"
+    }
+  ],
+  "answers": [],
+  "corrections": [],
+  "suggestions": []
+}

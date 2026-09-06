@@ -656,7 +656,7 @@ Step 2 (env), Step 4 (guard), Step 5 (errori/log), Step 6 (timeout/retry).
 
 ## Step 8 — Client SearXNG (server-only) e normalizzazione dei risultati
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato `lib/server/search/searxng.ts` con `searchSearxng` → `SearchOutcome` (non lancia mai; stati `empty`/`unconfigured`/errore distinti), allowlist fissa (`assertAllowedFixedHost`; http consentito solo per host di dev loopback), auth Bearer dal token condiviso, timeout via AbortSignal + retry controllato (4xx mai ritentati, body mai riflessi), parsing con scarto per-item (`parseSearxngResults`), normalizzazione (url relativo risolto, date solo ISO-like, truncation) e cap a `maxSearchResultsPerQuery`; esportata la `SearchPort` per il motore (Step 17). Fixture `tests/fixtures/searxng/`. Test: 109 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 

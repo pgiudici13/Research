@@ -106,9 +106,13 @@ lib/
     llm/
       nvidia.ts            (client /chat/completions OpenAI-compatible)
       structured.ts        (chatJson: output JSON validato + retry di rigenerazione)
+    search/
+      searxng.ts           (client SearXNG JSON: outcome, parsing, normalizzazione)
 tests/
   smoke.test.ts
-  fixtures/nvidia/         (successo, 401, 500, content non stringa, body malformato)
+  fixtures/
+    nvidia/                (successo, 401, 500, content non stringa, body malformato)
+    searxng/               (risultati ok/empty, body malformato, errore 500)
   unit/
     config/                (test di env.ts e limits.ts)
     types/                 (test di serializzabilità/completezza dei tipi)
@@ -117,9 +121,10 @@ tests/
     logger.test.ts         (redazione, livelli, correlazione)
     http/                  (test di timeout, retry e guardia SSRF)
     server/llm/            (test di nvidia.ts e structured.ts)
+    server/search/         (test del client SearXNG)
 ```
 
-Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/server/search/` (SearXNG), `lib/server/llm/prompts.ts`, `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
+Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (canonical/dedupe e poi pipeline/motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
 
 ## 6. Pipeline Deep Research
 
