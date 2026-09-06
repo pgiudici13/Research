@@ -28,7 +28,7 @@ Verificato con `git status`, `git log` e ispezione del filesystem:
 - `[!] BLOCCATO` — ostacolato da una dipendenza esterna/decisione non risolta.
 - `[?] DA VERIFICARE` — implementato ma non ancora validato, oppure in attesa di verifica su ambiente reale (es. Pi, tunnel, Vercel).
 
-### 0.3 Riepilogo funzionalità (aggiornato allo Step 25)
+### 0.3 Riepilogo funzionalità (aggiornato allo Step 29)
 
 | Area | Stato |
 |---|---|
@@ -47,9 +47,9 @@ Verificato con `git status`, `git log` e ispezione del filesystem:
 | Sintesi con citazioni | COMPLETATO — Step 18 |
 | Citation mapping deterministico | COMPLETATO — Step 19 |
 | Progress/execution state | COMPLETATO — Step 20 |
-| Testing (unit/integration) | PARZIALE — test per fase; consolidamento finale Step 29 |
+| Testing (unit/integration) | COMPLETATO — Step 29 (inventory, e2e route, copertura) |
 | Sicurezza / prompt injection | COMPLETATO — Step 24–25 |
-| Osservabilità | DA IMPLEMENTARE — Step 28 |
+| Osservabilità | COMPLETATO — Step 28 |
 | Raspberry Pi 3B + SearXNG | DA IMPLEMENTARE (deploy reale) |
 | Cloudflare Tunnel | DA IMPLEMENTARE (deploy reale) |
 | Deployment Vercel | DA IMPLEMENTARE (deploy reale) |
@@ -1823,7 +1823,7 @@ Step 5 (logger), Step 17 (engine), Step 21 (API requestId).
 
 ## Step 29 — Suite di test completa, fixture e copertura
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: `docs/testing.md` con inventory per fase (ogni area di AGENTS §6 → test/casi chiave), fixture condivise documentate, comandi e policy rete. I casi "mancanti" indicati dallo spec risultano già coperti e verificati (redirect chain 301→302→200 + tetto redirect nel fetcher, timeout `E_SEARCH_TIMEOUT` nel client SearXNG, body non-JSON/content non-stringa in NVIDIA, input API al limite/clamp) — nessun test aggiuntivo necessario oltre l'e2e. `tests/integration/e2e-research.test.ts` (2): route-level con deps FAKE complete iniettate via `vi.mock` sul modulo di assemblaggio e motore reale — avvio (primo evento `status`, `X-Research-Id` coerente), avanzamento ordinato (`planning → query → source-fetched → evidence → result → done`), risultato `completed` con citazioni che puntano solo a fonti `fetched`, e fallimento Pi (SearXNG giù → `failed`/`searchUnavailable`, evento `error` non sensibile, nessun crash). Copertura: aggiunto `@vitest/coverage-v8@4.1.11` (allineato a vitest 4) + `npm run test:coverage` + config coverage (include `lib/**`, `research/**`, `app/api/**`, informativo senza gate): Statements 92.83%, Branches 85.29%, Functions 95.51%, Lines 94.38% (file a 0% = shim/type-only). Rete reale esclusa: `tests/setup/no-network.ts` (setup globale) sostituisce `fetch` consentendo solo loopback — tutta la suite verde senza rete esterna. Suite: 432 verdi (51 file); typecheck/lint/build/check:secrets puliti.
 
 ### Obiettivo
 
@@ -1863,11 +1863,11 @@ Tutti gli step implementativi (oggetto dei test), Step 1 (tooling).
 
 ### Definition of Done
 
-- [ ] inventory per fase completo con casi mancanti aggiunti
-- [ ] fixture condivise e documentate (nessun finto segreto)
-- [ ] e2e route-level copre avvio/progresso/risultato/fallimento Pi
-- [ ] copertura misurata e documentata
-- [ ] tutta la suite verde senza rete reale
+- [x] inventory per fase completo con casi mancanti aggiunti
+- [x] fixture condivise e documentate (nessun finto segreto)
+- [x] e2e route-level copre avvio/progresso/risultato/fallimento Pi
+- [x] copertura misurata e documentata
+- [x] tutta la suite verde senza rete reale
 
 ---
 

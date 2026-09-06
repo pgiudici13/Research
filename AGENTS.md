@@ -4,13 +4,14 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–28 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–29 di `STEP.md`):
 
-- repository con 42 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection + matrice errori + performance + osservabilità);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md, error-matrix.md, performance.md, observability.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (430 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 43 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection + matrice errori + performance + osservabilità + consolidamento test);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md, error-matrix.md, performance.md, observability.md, testing.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (432 test verdi, copertura 94.38% lines su lib/research/api), `vitest.config.mts`, `tests/setup/`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink, wire protocol NDJSON); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); API `app/api/` (POST /api/research NDJSON + GET /api/health) con `lib/server/rate-limit.ts` e assemblaggio deps `lib/server/research/deps.ts`; dettagli e albero completo in §5;
-- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel e il consolidamento test dello Step 29; audit sicurezza (24), prompt-injection (25), matrice errori (26), performance (27) e osservabilità (28) completati e documentati in `docs/` e README;
+- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel (Fase 23) e documentazione deploy `pi/`; gli step trasversali 24–29 (security, prompt-injection, errori, performance, osservabilità, testing) sono completati e documentati in `docs/`;
+- suite: 432 test verdi (51 file); copertura informativa (v8): lines 94.38% su `lib/**`+`research/**`+`app/api/**`; guardia anti-rete `tests/setup/no-network.ts` attiva in tutti i test;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -64,7 +65,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–28 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–29 completati):
 
 ```text
 AGENTS.md
@@ -82,6 +83,7 @@ docs/
   error-matrix.md         (matrice errori → comportamento/classe/dove verificato)
   performance.md          (budget/conteggi attesi, linee guida Vercel e Pi)
   observability.md        (log attesi, correlazione researchId, policy redazione)
+  testing.md              (inventory per fase, fixture, copertura, policy rete)
 scripts/
   check-secrets.mjs       (scanner attivo: chiavi, .env tracciati, 1234, placeholder .env.example)
 app/
@@ -207,6 +209,9 @@ tests/
     security-render.test.tsx (payload HTML ostile renderizzato come solo testo)
     failure-modes.test.ts   (matrice errori Step 26: ogni scenario con fake, output puliti)
     performance.test.ts     (conteggi deterministici Step 27: niente richieste inutili)
+    e2e-research.test.ts    (route-level Step 29: avvio/progresso/risultato/fallimento Pi)
+  setup/
+    no-network.ts           (guarda anti-rete: solo loopback nei test)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.

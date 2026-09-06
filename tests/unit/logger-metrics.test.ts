@@ -48,7 +48,8 @@ describe("redazione regressione (payload complessi)", () => {
   it("valori che sembrano credenziali vengono redatti anche senza chiave sensibile", () => {
     const { logger, lines } = captureLogger();
     logger.info("prova.valori", {
-      note: "token di esempio: xoxb-1234567890-abcdefghijk e ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      // check-secrets:ignore — valori finti di test per verificare la redazione
+      note: "token di esempio: xoxb-1234567890-abcdefghijk e ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAA", // check-secrets:ignore
     });
     const serialized = JSON.stringify(JSON.parse(lines[0]!));
     expect(serialized).not.toContain("xoxb-");
