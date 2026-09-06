@@ -52,6 +52,9 @@ beforeEach(async () => {
 
 afterAll(async () => {
   if (server.listening) {
+    // Undici può mantenere connessioni keep-alive aperte dopo i fetch; chiuderle
+    // esplicitamente evita che Vitest resti in attesa del callback di close().
+    server.closeAllConnections();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });

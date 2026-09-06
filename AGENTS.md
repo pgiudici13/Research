@@ -7,10 +7,10 @@ Questo documento descrive sia il contesto prodotto richiesto sia le regole per c
 Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–14 di `STEP.md`):
 
 - repository con 15 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (placeholder), `app/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence), `tests/` (234 test verdi), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (scanner attivo), `app/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence), `tests/` (234 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded) e `research/extract/` (testo leggibile da HTML); dettagli e albero completo in §5;
-- NON ancora presenti: API route, `app/api/`, motore di ricerca (`research/engine` e pipeline), planner, sintesi/citazioni, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
+- NON ancora presenti: API route, `app/api/`, motore di ricerca (`research/engine` e pipeline completa), sintesi/citazioni, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -50,21 +50,21 @@ Il backend Vercel è il confine di sicurezza e orchestrazione. Il browser non de
 - React 19.2.8;
 - TypeScript `strict` (configurazione in `tsconfig.json`);
 - ESLint con `eslint-config-next` (configurazione in `eslint.config.mjs`);
-- Vitest 4 come test runner (dev-dependency, configurazione in `vitest.config.ts`);
+- Vitest 4 come test runner (dev-dependency, configurazione in `vitest.config.mts`);
 - npm come package manager.
 
 ### Target da confermare con l’implementazione
 
 - fetch HTTP nativo, senza aggiungere dipendenze inutili;
-- SearXNG come motore di ricerca meta-search (Step 8/30);
+- client SearXNG server-side come motore meta-search (implementato nello Step 8); il servizio SearXNG sul Pi resta da configurare;
 - Cloudflare Tunnel per il collegamento al Pi (Step 31);
-- NVIDIA API per generazione e sintesi (Step 7).
+- client NVIDIA API server-side per chiamate LLM (implementato nello Step 7); planner e sintesi finale usano/ useranno questo confine, ma la sintesi finale non è ancora implementata.
 
 Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `package.json`; non descrivere lo stack “target” come stack effettivo.
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–9 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–14 completati):
 
 ```text
 AGENTS.md
@@ -74,14 +74,14 @@ package.json
 tsconfig.json
 next.config.ts
 eslint.config.mjs
-vitest.config.ts
+vitest.config.mts
 .gitignore
 .env.example              (solo placeholder)
 scripts/
   check-secrets.mjs        (placeholder, logica completa nello Step 24)
 app/
   layout.tsx               (radice, lang="it")
-  page.tsx                 (segnaposto: nessuna funzionalità ancora)
+  page.tsx                 (segnaposto UI; nessun flusso di ricerca collegato)
   globals.css
   favicon.ico
 lib/

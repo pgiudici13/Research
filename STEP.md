@@ -28,20 +28,20 @@ Verificato con `git status`, `git log` e ispezione del filesystem:
 - `[!] BLOCCATO` — ostacolato da una dipendenza esterna/decisione non risolta.
 - `[?] DA VERIFICARE` — implementato ma non ancora validato, oppure in attesa di verifica su ambiente reale (es. Pi, tunnel, Vercel).
 
-### 0.3 Riepilogo funzionalità
+### 0.3 Riepilogo funzionalità (aggiornato allo Step 14)
 
 | Area | Stato |
 |---|---|
 | Frontend web | DA IMPLEMENTARE |
 | API backend (Vercel) | DA IMPLEMENTARE |
-| Client NVIDIA API (server-side) | DA IMPLEMENTARE |
-| Client SearXNG (server-side) | DA IMPLEMENTARE |
-| Fetch pagine + estrazione testo | DA IMPLEMENTARE |
-| Deduplicazione URL / normalizzazione | DA IMPLEMENTARE |
-| Source scoring/ranking | DA IMPLEMENTARE |
-| Research planner (LLM) | DA IMPLEMENTARE |
+| Client NVIDIA API (server-side) | COMPLETATO — Step 7 |
+| Client SearXNG (server-side) | COMPLETATO — Step 8; deploy Pi da fare |
+| Fetch pagine + estrazione testo | COMPLETATO — Step 10–11 |
+| Deduplicazione URL / normalizzazione | COMPLETATO — Step 9 |
+| Source scoring/ranking | COMPLETATO — Step 12 |
+| Research planner (LLM) | COMPLETATO — Step 13 |
 | Motore di ricerca iterativo | DA IMPLEMENTARE |
-| Evidence system | DA IMPLEMENTARE |
+| Evidence system | COMPLETATO — Step 14 |
 | Verifica / gap detection | DA IMPLEMENTARE |
 | Contradiction detection | DA IMPLEMENTARE |
 | Sintesi con citazioni | DA IMPLEMENTARE |
@@ -109,11 +109,11 @@ package.json
 tsconfig.json
 next.config.ts
 eslint.config.mjs
-vitest.config.ts
+vitest.config.mts
 .env.example
 .gitignore                    (aggiungere .env, .next, coverage, node_modules se mancanti)
 scripts/
-  check-secrets.mjs           (scan segreti/env placeholder su sorgenti e bundle)
+  check-secrets.mjs           (scan di segreti/env sui file tracciati)
 app/
   layout.tsx                  (radice: html, lang="it", metadata)
   page.tsx                    (pagina home: ricerca + risultato)

@@ -2,7 +2,7 @@
 
 App di Deep Research: trasforma una domanda in una risposta sintetica, verificabile e citata.
 
-> **Stato attuale**: repository in fase iniziale. È in esecuzione la roadmap in `STEP.md`; le specifiche e i vincoli di prodotto sono in `AGENTS.md`. Al momento esiste solo lo scaffold (Step 1): Next.js App Router + TypeScript strict, nessuna funzionalità di ricerca ancora implementata.
+> **Stato attuale**: repository in implementazione incrementale. Gli Step 1–14 della roadmap in `STEP.md` sono completati; le API, il motore completo, la sintesi/citazioni, la UI di ricerca e i deploy Pi/Vercel restano da implementare. Le specifiche e i vincoli di prodotto sono in `AGENTS.md`.
 
 ## Stack (reale)
 
@@ -10,6 +10,8 @@ App di Deep Research: trasforma una domanda in una risposta sintetica, verificab
 - ESLint (`eslint-config-next`)
 - Vitest (test runner)
 - npm
+
+Sono già presenti i moduli server-side per NVIDIA e SearXNG, la protezione SSRF, il fetch/extract delle pagine, la deduplicazione URL, il ranking, il planner con fallback deterministico e il modello di evidenze. Non sono ancora collegati a un endpoint API o a un flusso UI completo.
 
 ## Avvio locale
 
