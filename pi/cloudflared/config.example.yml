@@ -1,0 +1,40 @@
+# cloudflared — ESEMPIO senza segreti (sul Pi: ~/.cloudflared/config.yml).
+# Il file delle credenziali (<tunnel-id>.json) vive SOLO sul Pi, mai nel repo.
+#
+# Comandi preliminari (interattivi, richiedono l'account Cloudflare):
+#   cloudflared tunnel login
+#   cloudflared tunnel create deep-research
+#   cloudflared tunnel route dns deep-research <CLOUDFLARE_TUNNEL_HOSTNAME>
+#
+# Poi sostituire i placeholder qui sotto con i valori reali locali.
+
+tunnel: <tunnel-id-placeholder>            # id del tunnel creato
+credentials-file: /home/admin/.cloudflared/<tunnel-id>.json   # mai committato
+
+ingress:
+  # Hostname pubblico -> Caddy locale con auth token (Step 30)
+  - hostname: <CLOUDFLARE_TUNNEL_HOSTNAME>
+    service: http://127.0.0.1:8080
+  # Qualunque altro hostname -> 404
+  - service: http_status:404
+
+# systemd (unit di esempio, sul Pi come /etc/systemd/system/cloudflared.service):
+#   [Unit]
+#   Description=Cloudflare Tunnel (deep-research)
+#   After=network-online.target docker.service caddy.service
+#   Wants=network-online.target
+#
+#   [Service]
+#   User=admin
+#   ExecStart=/usr/local/bin/cloudflared tunnel --config /home/admin/.cloudflared/config.yml run deep-research
+#   Restart=on-failure
+#   RestartSec=5s
+#   MemoryMax=96M
+#   NoNewPrivileges=true
+#   ProtectSystem=strict
+#   ProtectHome=read-only
+#
+#   [Install]
+#   WantedBy=multi-user.target
+#
+#   sudo systemctl daemon-reload && sudo systemctl enable --now cloudflared

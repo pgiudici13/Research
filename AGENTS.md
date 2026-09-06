@@ -4,13 +4,13 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–29 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–30 di `STEP.md`):
 
-- repository con 43 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection + matrice errori + performance + osservabilità + consolidamento test);
+- repository con 44 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection + matrice errori + performance + osservabilità + consolidamento test);
 - file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md, error-matrix.md, performance.md, observability.md, testing.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (432 test verdi, copertura 94.38% lines su lib/research/api), `vitest.config.mts`, `tests/setup/`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink, wire protocol NDJSON); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); API `app/api/` (POST /api/research NDJSON + GET /api/health) con `lib/server/rate-limit.ts` e assemblaggio deps `lib/server/research/deps.ts`; dettagli e albero completo in §5;
-- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel (Fase 23) e documentazione deploy `pi/`; gli step trasversali 24–29 (security, prompt-injection, errori, performance, osservabilità, testing) sono completati e documentati in `docs/`;
+- completati e documentati in `docs/`: gli step trasversali 24–29 (security, prompt-injection, errori, performance, osservabilità, testing) e la Fase 23 Step 30 (deployment Pi) — quest’ultimo eseguito su hardware reale (SearXNG in Docker solo loopback + Caddy auth + fix memcg, vedi `pi/`); in corso Step 31 (Cloudflare Tunnel): `cloudflared` installato sul Pi, manca il login interattivo dell’utente; NON ancora presenti: configurazione Vercel di deploy (Step 32) e la parte tunnel attiva;
 - suite: 432 test verdi (51 file); copertura informativa (v8): lines 94.38% su `lib/**`+`research/**`+`app/api/**`; guardia anti-rete `tests/setup/no-network.ts` attiva in tutti i test;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
@@ -65,7 +65,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–29 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–30 completati):
 
 ```text
 AGENTS.md
@@ -212,9 +212,15 @@ tests/
     e2e-research.test.ts    (route-level Step 29: avvio/progresso/risultato/fallimento Pi)
   setup/
     no-network.ts           (guarda anti-rete: solo loopback nei test)
+pi/
+  README.md                 (deploy verificato su hardware: architettura, fix memcg DTB, passo-passo)
+  searxng/settings.yml.example (config esempio: JSON abilitato, bind 127.0.0.1, limiter, engine essenziali)
+  caddy/Caddyfile.example   (proxy 127.0.0.1:8080 con auth Bearer via {$RESEARCH_INTERNAL_AUTH_TOKEN})
+  cloudflared/config.example.yml (tunnel: ingress verso 127.0.0.1:8080, credenziali mai nel repo)
+  docs/verifica.md          (checklist eseguita su hardware reale: 401/200, healthz, memoria, carico)
 ```
 
-Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
+Struttura deploy (Step 30, file reali nel repo — mai segreti): `pi/` come sopra. Sul Pi i file reali hanno valori generati localmente (`openssl rand -hex 32`) in `/home/admin/.secrets/deep-research.env` e `/etc/caddy/env` (600), mai nel repository. Stato Fase 23: Step 30 completato su hardware; Step 31 parziale (cloudflared installato, login tunnel interattivo pendente); Step 32 (Vercel) da fare.
 
 ## 6. Pipeline Deep Research
 

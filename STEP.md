@@ -1875,7 +1875,7 @@ Tutti gli step implementativi (oggetto dei test), Step 1 (tooling).
 
 ## Step 30 — Raspberry Pi: SearXNG e servizio locale
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: eseguito SU HARDWARE REALE il 2026-09-06 su `p-pi` (Raspberry Pi 3 Model B Plus Rev 1.3, Debian 13 trixie, kernel 6.18.34+rpt-rpi-v8, aarch64, 1 GB RAM). Installati: `docker.io` 26.1.5 + `docker-compose` 2.26.1 (plugin; su trixie il pacchetto è `docker-compose`, il nome `docker-compose-v2` non esiste), `caddy` 2.6.2 (repo Debian), `cloudflared` 2026.8.3 (binario ufficiale arm64). Layout reale sul Pi: `/home/admin/deep-research/{docker-compose.yml,searxng/settings.yml}` (SearXNG solo su `127.0.0.1:8893`, container `restart: unless-stopped`, healthcheck, mem_limit 512m/pids 128), segreti in `/home/admin/.secrets/deep-research.env` (600) e `/etc/caddy/env` (root:root 600, via override systemd `EnvironmentFile`), Caddy reale in `/etc/caddy/Caddyfile` (solo `127.0.0.1:8080`, matcher esatto sull'header `Authorization: Bearer`, 401 altrimenti; nota: matcher Caddy non constant-time, rischio trascurabile su loopback, documentato). **Scoperta critica documentata**: le immagini Raspberry Pi avviano il kernel con `cgroup_disable=memory` COTTO nei bootargs del DTB (`/boot/firmware/*.dtb`), non solo in `cmdline.txt` (il firmware imposta `/chosen/bootargs` da cmdline.txt solo se il DTB non ne ha uno) → i memory limit Docker erano scartati. Fix verificato: `dtc` round-trip sul `bcm2710-rpi-3-b-plus.dtb` con rimozione del flag (backup `.bak-cgroup`), reboot → `cgroup.controllers = cpuset cpu io memory pids` e `MemLimit=536870912` applicato. Verifiche reali in `pi/docs/verifica.md`: 401 senza/con token errato, 200 + JSON con token (motore attivo, risultati reali), healthz 200, RSS ~163 MB e host ~460 MB liberi sotto 2 query concorrenti, RestartCount=0. Docs eseguibili nel repo: `pi/README.md`, `pi/searxng/settings.yml.example`, `pi/caddy/Caddyfile.example`, `pi/docs/verifica.md`. `npm run check:secrets` pulito su `pi/**`.
 
 ### Obiettivo
 
@@ -1918,17 +1918,17 @@ Step 2 (variabili: il token deve combaciare con `RESEARCH_INTERNAL_AUTH_TOKEN`),
 
 ### Definition of Done
 
-- [ ] config esempio SearXNG (JSON abilitato, bind 127.0.0.1, limiter) documentata
-- [ ] reverse proxy con auth token (esempio, senza segreti) documentato
-- [ ] resource limits per il Pi documentati
-- [ ] procedura di verifica locale scritta
-- [ ] nessun segreto in `pi/**`
+- [x] config esempio SearXNG (JSON abilitato, bind 127.0.0.1, limiter) documentata (+ verificata su hardware reale)
+- [x] reverse proxy con auth token (esempio, senza segreti) documentato (+ verificato: 401/200)
+- [x] resource limits per il Pi documentati (+ `MemLimit=536870912` verificato dopo fix memcg DTB)
+- [x] procedura di verifica locale scritta (+ eseguita su hardware reale, risultati in `pi/docs/verifica.md`)
+- [x] nessun segreto in `pi/**` (`npm run check:secrets`)
 
 ---
 
 ## Step 31 — Cloudflare Tunnel: collegamento Vercel → Pi
 
-Stato: `[ ] DA FARE`
+Stato: `[ ] PARZIALE` — cloudflared 2026.8.3 installato sul Pi (`/usr/local/bin/cloudflared`); manca il passo interattivo utente: `cloudflared tunnel login` (browser/account Cloudflare), `tunnel create deep-research`, `route dns` e avvio systemd. Config di esempio in `pi/cloudflared/config.example.yml`; unit systemd documentata nel file.
 
 ### Obiettivo
 

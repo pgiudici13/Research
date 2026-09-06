@@ -1,0 +1,38 @@
+# Caddy — ESEMPIO senza segreti (sul Pi: /etc/caddy/Caddyfile).
+# Reverse proxy locale su 127.0.0.1:8080 verso SearXNG (127.0.0.1:8893)
+# con controllo dell'header Authorization: Bearer <token>.
+# Il token arriva da /etc/caddy/env (root:root 600) via EnvironmentFile
+# (override systemd: /etc/systemd/system/caddy.service.d/env.conf).
+# Nessuna porta su interfacce di rete: bind esplicito su loopback.
+
+{
+	admin off
+}
+
+:8080 {
+	bind 127.0.0.1
+
+	@authed {
+		header Authorization "Bearer {$RESEARCH_INTERNAL_AUTH_TOKEN}"
+	}
+
+	handle @authed {
+		reverse_proxy 127.0.0.1:8893
+	}
+
+	handle {
+		respond "unauthorized" 401
+	}
+
+	header {
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/searxng-access.log {
+			roll_size 5MiB
+			roll_keep 3
+		}
+		format console
+	}
+}
