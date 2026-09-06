@@ -96,11 +96,15 @@ lib/
   validate/
     schema.ts              (type-guard componibili, ValidationError con percorso)
     json.ts                (parse JSON robusto da LLM: strict/loose/block)
+  errors.ts                (tassonomia C.4: ErrorCode, ERROR_CATALOG, AppError, toErrorInfo)
+  logger.ts                (log JSON strutturato con redazione automatica)
 tests/
   smoke.test.ts
   unit/config/             (test di env.ts e limits.ts)
   unit/types/              (test di serializzabilità/completezza dei tipi)
   unit/validate/           (test di schema.ts e json.ts)
+  unit/errors.test.ts      (catalogo errori e safety di toErrorInfo)
+  unit/logger.test.ts      (redazione, livelli, correlazione)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/` (config, tipi, validate, errori, logger, http, server/llm, server/search), `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti), `.env.example`. Nominare i percorsi effettivi in questo file quando il codice esisterà.

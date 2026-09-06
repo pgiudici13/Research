@@ -489,7 +489,7 @@ Step 3 (tipi per le guard di dominio dove servono).
 
 ## Step 5 — Errori tipizzati e logging strutturato con redazione
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `lib/errors.ts` (ErrorCode/C.4, `ERROR_CATALOG`, `AppError`, `toErrorInfo` sempre safe, `isRetryable`/`isRetryableError`, factory `appError`) e `lib/logger.ts` (`createLogger` JSON con sink iniettabile, filtri per livello, redazione ricorsiva per chiave sensibile/Headers/valori-credential, `ctx()` e `child()` per la correlazione). Messaggi di catalogo in italiano non sensibili. Test: 56 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 
