@@ -4,13 +4,13 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–24 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–25 di `STEP.md`):
 
-- repository con 38 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (386 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 39 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (398 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink, wire protocol NDJSON); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); API `app/api/` (POST /api/research NDJSON + GET /api/health) con `lib/server/rate-limit.ts` e assemblaggio deps `lib/server/research/deps.ts`; dettagli e albero completo in §5;
-- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel e prompt-injection/errori/performance/osservabilità/consolidamento test degli step successivi (l’audit sicurezza dello Step 24 è completato e documentato in `docs/security.md`);
+- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel e gli step trasversali successivi (errori/performance/osservabilità/consolidamento test); l’audit sicurezza (Step 24) e la policy prompt-injection (Step 25) sono completati e documentati in `docs/security.md` e README;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -64,7 +64,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–24 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–25 completati):
 
 ```text
 AGENTS.md
@@ -122,7 +122,7 @@ lib/
     llm/
       nvidia.ts            (client /chat/completions OpenAI-compatible)
       structured.ts        (chatJson: output JSON validato + retry di rigenerazione)
-      prompts.ts           (prompt di sintesi versionato; evidenze come dati nel user)
+      prompts.ts           (builder CENTRALIZZATO buildMessages: planner/verifier/classifier/synthesizer; recinzione dati <research_evidence version="1">)
     search/
       searxng.ts           (client SearXNG JSON: outcome, parsing, normalizzazione)
     rate-limit.ts          (InMemoryRateLimiter puro: sliding window + concorrenza)
@@ -140,7 +140,7 @@ research/
   scoring/
     score.ts               (segnale/ranking puri dei candidati: pesi in WEIGHTS)
   planning/
-    prompt.ts              (prompt costante e versionato del planner)
+    prompt.ts              (shim: re-export dei prompt planner dal builder centralizzato)
     fallback.ts            (planner deterministico senza LLM, budget rispettato)
     planner.ts             (planResearch: chatJson + schema + sanificazione + fallback)
   evidence/

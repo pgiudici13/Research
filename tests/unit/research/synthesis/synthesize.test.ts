@@ -156,7 +156,8 @@ describe("synthesizeReport — percorso LLM", () => {
     const { messages } = vi.mocked(chatJson).mock.calls[0]![0];
     expect(messages[0]!.role).toBe("system");
     const user = String(messages[1]!.content);
-    expect(user).toContain("<<<INIZIO DATI");
+    // policy Step 25: dati nella recinzione versionata del builder centralizzato
+    expect(user).toContain('<research_evidence version="1">');
     // le evidenze arrivano numerate con gli stessi indici della tabella
     expect(user).toContain('"index":1');
     expect(user).toContain('"passage":"L\'ateneo pisano fu fondato nell\'anno 1343."');

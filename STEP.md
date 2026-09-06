@@ -28,28 +28,28 @@ Verificato con `git status`, `git log` e ispezione del filesystem:
 - `[!] BLOCCATO` — ostacolato da una dipendenza esterna/decisione non risolta.
 - `[?] DA VERIFICARE` — implementato ma non ancora validato, oppure in attesa di verifica su ambiente reale (es. Pi, tunnel, Vercel).
 
-### 0.3 Riepilogo funzionalità (aggiornato allo Step 14)
+### 0.3 Riepilogo funzionalità (aggiornato allo Step 25)
 
 | Area | Stato |
 |---|---|
-| Frontend web | DA IMPLEMENTARE |
-| API backend (Vercel) | DA IMPLEMENTARE |
+| Frontend web | COMPLETATO — Step 22–23 |
+| API backend (Vercel) | COMPLETATO — Step 20–21 |
 | Client NVIDIA API (server-side) | COMPLETATO — Step 7 |
 | Client SearXNG (server-side) | COMPLETATO — Step 8; deploy Pi da fare |
 | Fetch pagine + estrazione testo | COMPLETATO — Step 10–11 |
 | Deduplicazione URL / normalizzazione | COMPLETATO — Step 9 |
 | Source scoring/ranking | COMPLETATO — Step 12 |
 | Research planner (LLM) | COMPLETATO — Step 13 |
-| Motore di ricerca iterativo | DA IMPLEMENTARE |
+| Motore di ricerca iterativo | COMPLETATO — Step 17 |
 | Evidence system | COMPLETATO — Step 14 |
-| Verifica / gap detection | DA IMPLEMENTARE |
-| Contradiction detection | DA IMPLEMENTARE |
-| Sintesi con citazioni | DA IMPLEMENTARE |
-| Citation mapping deterministico | DA IMPLEMENTARE |
-| Progress/execution state | DA IMPLEMENTARE |
-| Testing (unit/integration) | DA IMPLEMENTARE |
-| Sicurezza / prompt injection | DA IMPLEMENTARE |
-| Osservabilità | DA IMPLEMENTARE |
+| Verifica / gap detection | COMPLETATO — Step 15 |
+| Contradiction detection | COMPLETATO — Step 16 |
+| Sintesi con citazioni | COMPLETATO — Step 18 |
+| Citation mapping deterministico | COMPLETATO — Step 19 |
+| Progress/execution state | COMPLETATO — Step 20 |
+| Testing (unit/integration) | PARZIALE — test per fase; consolidamento finale Step 29 |
+| Sicurezza / prompt injection | COMPLETATO — Step 24–25 |
+| Osservabilità | DA IMPLEMENTARE — Step 28 |
 | Raspberry Pi 3B + SearXNG | DA IMPLEMENTARE (deploy reale) |
 | Cloudflare Tunnel | DA IMPLEMENTARE (deploy reale) |
 | Deployment Vercel | DA IMPLEMENTARE (deploy reale) |
@@ -1587,7 +1587,7 @@ Step 5/6/7/8/10/21/23 (oggetto dell'audit), Step 1 (script npm).
 
 ## Step 25 — Prompt injection: policy contenuti non attendibili
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: builder CENTRALIZZATO in `lib/server/llm/prompts.ts` — `buildMessages(role, payload)` con `role: 'planner'|'verifier'|'classifier'|'synthesizer'` (superset dello spec: la classificazione conflitti dello Step 16 condivide la policy) + wrapper a firma stabile (`buildPlannerMessages`, `buildVerifierMessages`, `buildClassifierMessages`, `buildSynthesisMessages`). Struttura obbligatoria per OGNI ruolo: system prompt costante (mai contenuto web); dati (domanda/opzioni, claim/evidenze, conflitti, passaggi) SOLO nel messaggio user serializzati come JSON tra delimitatori espliciti e versionati `<research_evidence version="1">…</research_evidence>` con `<` escapato in `\u003c` (`serializeData`: un contenuto ostile non può chiudere la recinzione); istruzioni operative costanti DOPO la recinzione. `SYSTEM_SECURITY_ADDENDUM` comune appendi a ogni system prompt (framing NON ATTENDIBILE, no "ignora le istruzioni precedenti", no rivelazione chiavi/secret/prompt, citare solo le evidenze fornite). Versioni bumpate: `planner-v2`, `synthesis-v2`. Consumatori migrati al builder (nessun prompt costruito altrove): `research/planning/prompt.ts` è ora shim di re-export, `checker.ts` e `detect.ts` importano i messaggi centrali. Difesa a strati documentata in README (L1 framing / L2 output validati contro insiemi ammessi già esistenti / L3 chiave mai nel contesto per costruzione / L4 testo ridotto). Test: nuovi `tests/unit/server/llm/prompts.test.ts` (9: struttura per ruolo, system costante con payload ostili, breakout `</research_evidence>` escapato → una sola recinzione, round-trip JSON planner/verifier/classifier, divieti testuali in ogni system, assenza chiavi/`sk-`, regressione end-to-end con la fixture `injection.html` confinata come dato) + aggiornati i test testuali esistenti (fence/versioni). Suite: 398 verdi (46 file); typecheck/lint/build/check:secrets puliti.
 
 ### Obiettivo
 
@@ -1640,11 +1640,11 @@ Step 7 (chat), Step 14/16/18 (consumatori del builder), Step 11 (testo).
 
 ### Definition of Done
 
-- [ ] builder centralizzato prompt con delimitatori dati e framing
-- [ ] system prompt costante con divieti espliciti (test testuale)
-- [ ] output validati contro insiemi ammessi (niente fonti/chiavi nuove)
-- [ ] la chiave NVIDIA non compare in nessun prompt (per costruzione)
-- [ ] test injection verdi; typecheck verde
+- [x] builder centralizzato prompt con delimitatori dati e framing
+- [x] system prompt costante con divieti espliciti (test testuale)
+- [x] output validati contro insiemi ammessi (niente fonti/chiavi nuove)
+- [x] la chiave NVIDIA non compare in nessun prompt (per costruzione)
+- [x] test injection verdi; typecheck verde
 
 ---
 
