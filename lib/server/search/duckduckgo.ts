@@ -10,6 +10,7 @@ import type { SearchOutcome, SearchQuery, SearchRunContext } from "./searxng";
 const ENDPOINTS = [
   "https://html.duckduckgo.com/html/",
   "https://lite.duckduckgo.com/lite/",
+  "https://duckduckgo.com/html/",
 ] as const;
 const USER_AGENT = "DeepResearch/0.1 (server; fallback search)";
 
@@ -68,6 +69,7 @@ export async function searchDuckDuckGo(
       const items = parseDuckDuckGoResults(await response.text());
       if (items.length > 0) return { ok: true, empty: false, items };
     }
+
     return { ok: true, empty: true, items: [] };
   } catch {
     return { ok: false, error: toErrorInfo(appError("E_SEARCH_UNAVAILABLE", { phase: "search", retryable: false })) };
