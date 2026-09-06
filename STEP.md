@@ -1533,7 +1533,7 @@ Step 20 (eventi), Step 21 (API), Step 22 (shell), Step 3 (tipi report condivisi)
 
 ## Step 24 — Security hardening e audit
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: audit trasversale realizzato. `scripts/check-secrets.mjs` è lo scanner attivo (era placeholder): pattern di chiavi reali (`sk-`/`ghp`/`glpat`/`xox*`/`AIza`/`AKIA`/chiavi private), assegnazioni sensibili con valore, `.env` tracciati (eccezione documentata: `.env.example`, ora tracciato con `git add -f` come da struttura AGENTS.md, contiene solo `KEY=` vuoti), password nota `1234`, marcatore di riga `// check-secrets:ignore` per le fixture; exit non-zero con `percorso:riga`. Collegato a `check:all`. `tests/integration/security.test.ts` (8): nessun file client (`app` escluso `api`/`components`/`hooks`) importa `lib/server`/`lib/config/env`/logger/motore; i nomi `NVIDIA_API_KEY`/`RESEARCH_INTERNAL_AUTH_TOKEN` compaiono solo nei file consentiti; bundle `.next/static` ispezionato (nessun nome segreto); fuzz leggero (JSON annidato 200 livelli → 400 `E_VALIDATION`, testo ostile con controlli e HTML trasportato come dato in eventi NDJSON ben formati, question 1000 vs 1001 caratteri); policy rate limit di default. `tests/integration/security-render.test.tsx` (1, jsdom): regressione sanitizzazione — payload `<img onerror>`/`<script>` in domanda/sezioni/claim/citazioni esce come SOLO-TESTO (zero nodi img/script reali, nessun `[onerror]`, nessuna esecuzione). Meccanismo scanner verificato anche nel percorso negativo (chiave piantata in `.env.example` → exit 1; rimossa → exit 0). Checklist completa in `docs/security.md`. Suite: 386 verdi (45 file); typecheck/lint/build puliti; `grep NVIDIA_API_KEY .next/static` → nessun match.
 
 ### Obiettivo
 
@@ -1577,11 +1577,11 @@ Step 5/6/7/8/10/21/23 (oggetto dell'audit), Step 1 (script npm).
 
 ### Definition of Done
 
-- [ ] script `check:secrets` operativo e collegato a `check:all`
-- [ ] test confini server-only (import client) verdi
-- [ ] nessuna variabile segreta nei bundle pubblici (verificato)
-- [ ] casi sanitizzazione/regressione verdi
-- [ ] checklist §9 documentata nello step (o in README sicurezza)
+- [x] script `check:secrets` operativo e collegato a `check:all`
+- [x] test confini server-only (import client) verdi
+- [x] nessuna variabile segreta nei bundle pubblici (verificato)
+- [x] casi sanitizzazione/regressione verdi
+- [x] checklist §9 documentata nello step (in `docs/security.md`)
 
 ---
 

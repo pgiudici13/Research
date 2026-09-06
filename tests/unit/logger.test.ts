@@ -84,7 +84,7 @@ describe("redazione", () => {
 
   it("redige stringhe che sembrano credenziali anche su chiavi neutre", () => {
     const { logger, lines } = captureLogger();
-    logger.info("x", { url: "https://example.com?t=sk-live-abcdef123456" });
+    logger.info("x", { url: "https://example.com?t=sk-live-abcdef123456" }); // check-secrets:ignore (valore finto per il test di redazione)
     expect(JSON.stringify(parseLast(lines))).not.toContain("sk-live");
   });
 

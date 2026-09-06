@@ -30,7 +30,7 @@ npm run lint           # ESLint
 npm run typecheck      # tsc --noEmit
 npm run test           # Vitest (una volta)
 npm run test:watch     # Vitest (watch)
-npm run check:secrets  # scan segreti (placeholder fino allo Step 24)
+npm run check:secrets  # scan segreti su file tracciati (Step 24)
 npm run check:all      # lint + typecheck + test + check:secrets
 ```
 

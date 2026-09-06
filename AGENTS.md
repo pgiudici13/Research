@@ -4,13 +4,13 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–23 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–24 di `STEP.md`):
 
-- repository con 37 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (377 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 38 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (386 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink, wire protocol NDJSON); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); API `app/api/` (POST /api/research NDJSON + GET /api/health) con `lib/server/rate-limit.ts` e assemblaggio deps `lib/server/research/deps.ts`; dettagli e albero completo in §5;
-- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel (e audit sicurezza/deploy degli step successivi);
+- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel e prompt-injection/errori/performance/osservabilità/consolidamento test degli step successivi (l’audit sicurezza dello Step 24 è completato e documentato in `docs/security.md`);
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -64,7 +64,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–23 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–24 completati):
 
 ```text
 AGENTS.md
@@ -76,12 +76,14 @@ next.config.ts
 eslint.config.mjs
 vitest.config.mts
 .gitignore
-.env.example              (solo placeholder)
+.env.example              (solo placeholder, tracciato via git add -f)
+docs/
+  security.md             (checklist audit sicurezza AGENTS §9, esito per voce)
 scripts/
-  check-secrets.mjs        (placeholder, logica completa nello Step 24)
+  check-secrets.mjs       (scanner attivo: chiavi, .env tracciati, 1234, placeholder .env.example)
 app/
   layout.tsx               (radice, lang="it")
-  page.tsx                 (segnaposto UI; nessun flusso di ricerca collegato)
+  page.tsx                 (home: form + stato + progresso + report della ricerca)
   globals.css
   favicon.ico
   api/
@@ -195,6 +197,8 @@ tests/
     research-engine.test.ts (motore con dipendenze fake + fixture HTML reali)
     api-research.test.ts    (route API: streaming reale, validazione, 429)
     api-research-cancel.test.ts (wiring annullamento req.signal/stream)
+    security.test.ts        (confini server-only, nomi segreti, bundle, fuzz input)
+    security-render.test.tsx (payload HTML ostile renderizzato come solo testo)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.
