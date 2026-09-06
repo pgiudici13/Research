@@ -969,7 +969,7 @@ Step 3 (tipi), Step 7 (chatJson), Step 2 (budget).
 
 ## Step 14 — Modello evidenze ed estrazione dei passaggi
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creata la Fase 8 con `research/evidence/{extract,store}.ts`. `extractEvidence(page, ctx)` puro e deterministico: split con `splitIntoPassages` (Step 11), rilevanza per overlap token verso le sotto-domande (riusa `tokenize` dello Step 12), confidenza `high` se overlap ≥ 0.5 e ≥ 2 frasi, `medium` ≥ 0.25, altrimenti `low`; id deterministici `${sourceId}:p${index}`; `retrievedAt` dal contesto (default `page.extractedAt`); budget per pagina (default `maxEvidencesPerPage` 8) sulle migliori per rilevanza; fallback `allowLowConfidenceFallback` (fonti deboli scelte dal ranking: primi passaggi con confidence low e rilevanza 0); pagina vuota → [] senza crash. Regola di dominio testata: l'evidenza contiene SOLO testo esatto della fonte (nessuna aggiunta del modello). `EvidenceStore` immutabile (nessuno stato globale): `addEvidence` restituisce sempre una nuova store, `all/count/bySource/bySubQuestion`, budget totale (default `maxEvidencesTotal` 40) con `droppedCount` e `removeBeyondBudget` che tiene le migliori per rilevanza. Aggiunto campo opzionale `subQuestionId` a `Evidence` (additivo). Test: 16 dedicati; suite: 234 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 

@@ -177,6 +177,8 @@ export interface Evidence {
   passageIndex: number;
   retrievedAt: string;
   confidence: EvidenceConfidence;
+  /** Sotto-domanda a cui il passaggio risponde meglio (Step 14, se nota). */
+  subQuestionId?: string;
   queryIds?: string[];
   relevance?: number;
 }
