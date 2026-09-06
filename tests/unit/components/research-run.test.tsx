@@ -101,7 +101,7 @@ describe("ResearchRun", () => {
     await user.click(screen.getByRole("button", { name: COPY.form.start }));
 
     await waitFor(() => {
-      expect(screen.getByText("Completata")).toBeDefined();
+      expect(screen.getAllByText("Completata").length).toBeGreaterThan(0);
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
