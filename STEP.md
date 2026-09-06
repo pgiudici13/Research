@@ -914,7 +914,7 @@ Step 3, Step 9.
 
 ## Step 13 — Research planner (LLM con fallback deterministico)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creata la Fase 6/7 con `research/planning/{prompt,fallback,planner}.ts`. `prompt.ts`: `PLANNER_SYSTEM_PROMPT` costante e versionata (`PROMPT_VERSION`), la domanda entra SOLO come dato nel messaggio user. `fallback.ts`: `buildFallbackPlan` deterministico senza LLM — una sola sotto-domanda (niente invenzioni), 3-6 query da domanda/parole chiave/varianti (`facts`, anno corrente da clock mai hardcoded, `site:.gov/.edu` solo con hint lessicale di dominio pubblico documentato, `controversy OR criticism OR problems`), budget rispettato. `planner.ts`: `planResearch` — normalizzazione + limite lunghezza (E_VALIDATION), `chatJson` con `buildRawPlanSchema` (enum C.1, priority 0..1, `unknownKeys: reject` per rifiutare campi inventati, max query budget+10), sanificazione (id sotto-domanda unici, riferimenti pendenti rimossi, duplicati uniti, taglio per priorità mai oltre budget, lang default `auto`, freschezza normalizzata e coerente con `options`), `source: 'llm'|'fallback'` nel piano. Fallback su: LLM non configurato, errore infrastruttura, output invalido post-retry o piano non sanificabile; `llmError` è ErrorInfo safe; abort utente propagato (mai fallback); mai log di prompt/risposte. Aggiunto campo opzionale `source` a `ResearchPlan` (additivo). Test: 29 dedicati (fallback 16, planner 10, prompt 4 con 3 file); suite: 218 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 

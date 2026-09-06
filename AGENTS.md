@@ -4,10 +4,10 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–12 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–13 di `STEP.md`):
 
-- repository con 13 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (placeholder), `app/`, `lib/`, `research/` (urls, fetch, extract, scoring), `tests/` (189 test verdi), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 14 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (placeholder), `app/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning), `tests/` (218 test verdi), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded) e `research/extract/` (testo leggibile da HTML); dettagli e albero completo in §5;
 - NON ancora presenti: API route, `app/api/`, motore di ricerca (`research/engine` e pipeline), planner, sintesi/citazioni, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
@@ -119,6 +119,10 @@ research/
     html.ts                (HTML -> testo: blocchi rimossi, metadati, fallback, charset)
   scoring/
     score.ts               (segnale/ranking puri dei candidati: pesi in WEIGHTS)
+  planning/
+    prompt.ts              (prompt costante e versionato del planner)
+    fallback.ts            (planner deterministico senza LLM, budget rispettato)
+    planner.ts             (planResearch: chatJson + schema + sanificazione + fallback)
 tests/
   smoke.test.ts
   fixtures/
@@ -138,6 +142,7 @@ tests/
     research/fetch/        (test del fetcher con server HTTP locale)
     research/extract/      (test di text.ts e html.ts con fixture)
     research/scoring/      (test di score.ts: determinismo e anti-pattern)
+    research/planning/     (test di fallback.ts, planner.ts e prompt.ts)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `research/` (scoring, planning, evidence, verifica, contraddizioni, sintesi, citazioni, motore), `lib/server/llm/prompts.ts`, `pi/` (documentazione deploy, mai segreti). Nominare i percorsi effettivi in questo file quando il codice esisterà.

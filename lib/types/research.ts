@@ -98,6 +98,8 @@ export interface ResearchPlan {
   queries: PlannedQuery[];
   constraints: ResearchConstraints;
   ambiguities: string[];
+  /** Origine del piano: LLM o fallback deterministico (Step 13). */
+  source?: "llm" | "fallback";
 }
 
 // --- Risultati di ricerca e fonti ------------------------------------------
