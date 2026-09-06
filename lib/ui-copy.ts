@@ -1,7 +1,31 @@
 // Testi UI in italiano (solo dati, import-safe client/server; nessuna logica
 // sensibile, nessun dettaglio infrastrutturale o segreto).
 
+import type { ErrorCode } from "@/lib/errors";
 import type { PhaseName, ResearchStatus } from "@/lib/types";
+
+/**
+ * Testo utente per OGNI codice della tassonomia C.4 (mai messaggi grezzi o
+ * dettagli infrastrutturali). Test di completezza: ogni ErrorCode ha una voce.
+ */
+export const ERROR_COPY: Record<ErrorCode, string> = {
+  E_VALIDATION: "Richiesta non valida: controlla la domanda.",
+  E_RATE_LIMIT: "Troppe richieste: attendi un po' e riprova.",
+  E_BUDGET_EXCEEDED: "Budget di ricerca esaurito: la ricerca si è fermata prima del previsto.",
+  E_CANCELLED: "Ricerca annullata dall'utente.",
+  E_LLM_UNAVAILABLE: "Servizio di sintesi non disponibile: risultato in modalità degradata.",
+  E_LLM_TIMEOUT: "Il servizio di sintesi ha impiegato troppo tempo.",
+  E_LLM_INVALID_RESPONSE: "Risposta del servizio di sintesi non valida: usata la modalità degradata.",
+  E_SEARCH_UNAVAILABLE: "Servizio di ricerca non raggiungibile.",
+  E_SEARCH_TIMEOUT: "Il servizio di ricerca ha impiegato troppo tempo.",
+  E_SEARCH_EMPTY: "Nessun risultato trovato per questa ricerca.",
+  E_FETCH_FAILED: "Alcune pagine non sono risultate raggiungibili.",
+  E_FETCH_TOO_LARGE: "Alcune pagine erano troppo grandi e sono state saltate.",
+  E_FETCH_UNSUPPORTED: "Alcune pagine avevano un formato non supportato.",
+  E_SSRF_BLOCKED: "Alcune destinazioni non erano consentite.",
+  E_TIMEOUT_RESEARCH: "Tempo massimo di ricerca raggiunto: risultato parziale.",
+  E_INTERNAL: "Errore interno del servizio. Riprova più tardi.",
+};
 
 export const COPY = {
   appTitle: "Deep Research",
@@ -36,11 +60,9 @@ export const COPY = {
   } as const,
   errors: {
     network: "Errore di rete: impossibile raggiungere il servizio. Riprova.",
-    E_RATE_LIMIT: "Troppe richieste: attendi un po' e riprova.",
-    E_VALIDATION: "Richiesta non valida: controlla la domanda.",
-    E_INTERNAL: "Errore interno del servizio. Riprova più tardi.",
     generic: "Si è verificato un errore inatteso. Riprova.",
-  } as const,
+    ...ERROR_COPY,
+  },
   report: {
     sections: "Sezioni",
     conflicts: "Conflitti tra fonti",

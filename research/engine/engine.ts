@@ -11,6 +11,7 @@
 // - Errore locale (pagina giù, query vuota, LLM giù) NON ferma la ricerca.
 
 import { getLimits } from "@/lib/config/limits";
+import { toErrorInfo } from "@/lib/errors";
 import { createLogger } from "@/lib/logger";
 import type {
   Claim,
@@ -189,7 +190,7 @@ export async function runResearch(
     planFailed = true;
     limitations.llmUnavailable = true;
     noteLimitation("E_LLM_UNAVAILABLE", "Planner non disponibile: nessun piano generato.");
-    logger.warn("engine.plan_failed", { researchId, error: String(err) });
+    logger.warn("engine.plan_failed", { researchId, errorCode: toErrorInfo(err).code });
   }
   emit("phase", { phase: "planning", status: "ended" });
 
@@ -504,7 +505,7 @@ export async function runResearch(
       synthOk = false;
       limitations.llmUnavailable = true;
       noteLimitation("E_LLM_UNAVAILABLE", "Sintesi non disponibile: report senza sezioni.");
-      logger.warn("engine.synthesis_failed", { researchId, error: String(err) });
+      logger.warn("engine.synthesis_failed", { researchId, errorCode: toErrorInfo(err).code });
     }
     emit("phase", { phase: "synthesizing", status: "ended" });
   }

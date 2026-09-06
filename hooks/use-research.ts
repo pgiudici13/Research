@@ -7,7 +7,7 @@
 
 import { useCallback, useReducer, useRef } from "react";
 import { parseEventLine } from "@/research/progress/events";
-import { COPY } from "@/lib/ui-copy";
+import { COPY, ERROR_COPY } from "@/lib/ui-copy";
 import type { PhaseName, ProgressEvent, ResearchReport, ResearchStatus } from "@/lib/types";
 
 export type UiMacro = "idle" | "running" | "done" | "error";
@@ -72,14 +72,8 @@ export function researchReducer(
 
 /** Mappa il codice ErrorInfo a una chiave COPY.errors (mai body grezzo). */
 export function errorKeyForCode(code: string | undefined): string {
-  switch (code) {
-    case "E_RATE_LIMIT":
-    case "E_VALIDATION":
-    case "E_INTERNAL":
-      return code;
-    default:
-      return "generic";
-  }
+  if (code !== undefined && code in ERROR_COPY) return code;
+  return "generic";
 }
 
 export function errorTextForKey(key: string | null): string {

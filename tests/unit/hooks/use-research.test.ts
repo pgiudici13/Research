@@ -121,10 +121,13 @@ describe("researchReducer", () => {
 });
 
 describe("errorKeyForCode", () => {
-  it("mappa i codici noti a chiavi UI stabili, altrimenti generic", () => {
+  it("mappa ogni codice del catalogo alla propria chiave UI, altrimenti generic", () => {
     expect(errorKeyForCode("E_RATE_LIMIT")).toBe("E_RATE_LIMIT");
     expect(errorKeyForCode("E_VALIDATION")).toBe("E_VALIDATION");
-    expect(errorKeyForCode("E_LLM_UNAVAILABLE")).toBe("generic");
+    expect(errorKeyForCode("E_LLM_UNAVAILABLE")).toBe("E_LLM_UNAVAILABLE");
+    expect(errorKeyForCode("E_SEARCH_TIMEOUT")).toBe("E_SEARCH_TIMEOUT");
+    expect(errorKeyForCode("E_TIMEOUT_RESEARCH")).toBe("E_TIMEOUT_RESEARCH");
+    expect(errorKeyForCode("CODICE_SCONOSCIUTO")).toBe("generic");
     expect(errorKeyForCode(undefined)).toBe("generic");
   });
 });

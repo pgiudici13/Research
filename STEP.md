@@ -1652,7 +1652,7 @@ Step 7 (chat), Step 14/16/18 (consumatori del builder), Step 11 (testo).
 
 ## Step 26 — Matrice di errore e comportamento degradato (revisione trasversale)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: matrice unica documentata in `docs/error-matrix.md` (18 casi con classe recuperabile/parziale/terminale, comportamento e dove verificato). `tests/integration/failure-modes.test.ts` (16): esegue ogni riga con fake deterministici sul motore e sulle route API — LLM non configurato (partial + `llmUnavailable` + fallback deterministico con sezioni), LLM timeout/invalido (fallback con codice/nota espliciti via eventi `limitation`), SearXNG giù/timeout (failed + `searchUnavailable` + error event col codice), ricerca vuota (failed onesto, `missingSources`, zero citazioni), pagina 404/troppo grande/non supportata/vuota (SourceRecord `failed`/`unsupported`, conteggi, si continua), conflitti conservati con entrambe le posizioni (detect reale), timeout globale (partial + `timeBudgetExceeded`), annullamento (`cancelled`), errore imprevisto in una port (report failed, `toErrorInfo` → `E_INTERNAL` di catalogo), route API 400 `E_VALIDATION` e 429 `E_RATE_LIMIT` con Retry-After. In ogni scenario helper `expectClean`: nessuno stack trace/segreto/messaggio grezzo in eventi NDJSON, body HTTP e log catturati. Harden del motore: i log `engine.plan_failed`/`engine.synthesis_failed` ora loggano `errorCode` da `toErrorInfo` invece di `String(err)` (mai messaggio grezzo/stack nei log). Completezza UI: `ERROR_COPY` in `lib/ui-copy.ts` mappa OGNI codice C.4 a testo utente; `errorKeyForCode` (hook) mappa ogni codice del catalogo (prima solo 3); `tests/unit/ui-copy.test.ts` (3) verifica completezza e assenza di dettagli tecnici/segreti. Suite: 417 verdi (48 file); typecheck/lint/build/check:secrets puliti.
 
 ### Obiettivo
 
@@ -1704,11 +1704,11 @@ Tutti gli step funzionali 7–23 (scenari), Step 3 (codici), Step 5.
 
 ### Definition of Done
 
-- [ ] matrice errori documentata e coerente con i codici C.4
-- [ ] ogni scenario della matrice testato con fake (nessuna rete reale)
-- [ ] nessuno scenario produce crash/stack trace/secret in output
-- [ ] ogni codice errore ha testo UI (test di completezza)
-- [ ] test verdi; typecheck verde
+- [x] matrice errori documentata e coerente con i codici C.4
+- [x] ogni scenario della matrice testato con fake (nessuna rete reale)
+- [x] nessuno scenario produce crash/stack trace/secret in output
+- [x] ogni codice errore ha testo UI (test di completezza)
+- [x] test verdi; typecheck verde
 
 ---
 
