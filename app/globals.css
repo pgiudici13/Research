@@ -219,3 +219,311 @@ a:focus-visible {
 .error-box p {
   margin: 0 0 0.6rem;
 }
+
+/* --- Step 23: progresso live e report --------------------------------------- */
+
+.muted {
+  opacity: 0.7;
+}
+
+.live-progress {
+  margin-top: 1rem;
+}
+
+.phase-indicator {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  padding: 0;
+  margin: 0 0 0.6rem;
+}
+
+.phase-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.phase-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: rgba(128, 128, 128, 0.4);
+}
+
+.phase-step.phase-active .phase-dot {
+  background: #2563eb;
+}
+
+.phase-step.phase-done .phase-dot {
+  background: #16a34a;
+}
+
+.phase-step.phase-done .phase-label {
+  opacity: 0.75;
+}
+
+.counters {
+  font-size: 0.85rem;
+  margin: 0.3rem 0 0.6rem;
+}
+
+.event-log {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 6px;
+  max-height: 14rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.event-line {
+  word-break: break-word;
+}
+
+.event-line a,
+.source-url,
+.citation-meta a {
+  text-decoration: underline;
+}
+
+.report-view {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.report-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.report-title-row h2 {
+  margin: 0;
+}
+
+.status-badge {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.status-badge.status-completed {
+  color: #16a34a;
+  border-color: #16a34a;
+}
+
+.status-badge.status-partial {
+  color: #d97706;
+  border-color: #d97706;
+}
+
+.status-badge.status-failed {
+  color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.status-badge.status-cancelled {
+  color: #64748b;
+  border-color: #64748b;
+}
+
+.report-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0;
+}
+
+.report-meta div {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.report-meta dt {
+  font-weight: 600;
+}
+
+.report-meta dd {
+  margin: 0;
+}
+
+.research-id {
+  font-family: ui-monospace, monospace;
+}
+
+.banner {
+  padding: 0.7rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid;
+  margin: 0.8rem 0 0;
+}
+
+.banner-partial {
+  border-color: #d97706;
+}
+
+.banner-failed {
+  border-color: #b91c1c;
+}
+
+.banner-cancelled {
+  border-color: #64748b;
+}
+
+.kind-legend {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.report-section h3 {
+  margin: 0 0 0.6rem;
+}
+
+.report-paragraph {
+  line-height: 1.55;
+  margin: 0 0 0.9rem;
+  position: relative;
+}
+
+.paragraph-text {
+  display: inline;
+}
+
+.citations-inline {
+  display: inline;
+  margin-left: 0.3rem;
+}
+
+.citation-link {
+  font: inherit;
+  background: none;
+  border: none;
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0 0.1rem;
+  vertical-align: super;
+  font-size: 0.75rem;
+}
+
+.kind-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  text-transform: lowercase;
+  border-radius: 4px;
+  padding: 0.05rem 0.4rem;
+  margin-right: 0.5rem;
+  border: 1px solid currentColor;
+  vertical-align: middle;
+}
+
+.kind-fact {
+  color: #16a34a;
+}
+
+.kind-inference {
+  color: #2563eb;
+}
+
+.kind-uncertain {
+  color: #d97706;
+}
+
+.limitations-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.sources-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.sources-panel ul,
+.conflicts-list,
+.positions,
+.citations-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.source-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.source-item.source-active,
+.citation-active {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: #2563eb;
+}
+
+.source-failure {
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.source-domain {
+  font-size: 0.85rem;
+}
+
+.conflict-item {
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+}
+
+.conflict-item h4 {
+  margin: 0 0 0.3rem;
+}
+
+.conflict-item p {
+  margin: 0.3rem 0;
+}
+
+.positions {
+  padding-left: 0.6rem;
+}
+
+.citation-passage {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.citation-meta {
+  font-size: 0.8rem;
+}
+
+.citation-active {
+  border-radius: 6px;
+}
+
+.report-footer {
+  border-top: 1px solid rgba(128, 128, 128, 0.35);
+  padding-top: 0.8rem;
+  font-size: 0.85rem;
+}

@@ -1478,7 +1478,7 @@ Step 20 (tipi evento client), Step 21 (API), Step 1 (tooling test).
 
 ## Step 23 — Frontend: progresso live e report con citazioni
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: completata la UI con i componenti della Fase 15. `phase-indicator.tsx`: stepper delle 7 fasi con stato pending/active/done da `derivePhaseStates` e `aria-current="step"`. `event-log.tsx`: log live (query, trovato, analizzata/non raggiungibile/non supportata, evidenze, conflitti, limiti) con `role=log aria-live`; helper `safeHttpHref` che filtra schemi non http(s) (mai `javascript:`); contenuti SOLO come testo React. `report-view.tsx`: header con domanda, badge macro-stato, durata/timestamp/ID troncato, banner per partial/failed/cancelled; sezioni con paragrafi + badge kind (fatto/inferenza/incerto) + citazioni `[n]` cliccabili che evidenziano e scorrono a `cite-row-n`/`src-row-<id>`; limiti derivati dai flag; footer con disclaimer. `sources-panel.tsx`: due liste distinte — usate nelle citazioni vs consultate (fallite con codice di errore); `citations-panel.tsx` e `conflicts-panel.tsx` (entrambe le posizioni, mai nascoste). `research-run.tsx` esteso: in running mostra PhaseIndicator + contatori + EventLog; a fine stream renderizza ReportView. Nessun HTML non attendibile: audit `dangerouslySetInnerHTML` = 0 match. Test: 8 dedicati jsdom (report-view 4: badge/banner/kind/limiti, usate-vs-consultate, nessun href non-http, click su [n] → evidenzia+scroll; ui-live 4: stepper/aria-current, event-log testo, url filtrati, safeHttpHref). Suite: 377 verdi (43 file); typecheck/lint/build puliti.
 
 ### Obiettivo
 
@@ -1521,11 +1521,11 @@ Step 20 (eventi), Step 21 (API), Step 22 (shell), Step 3 (tipi report condivisi)
 
 ### Definition of Done
 
-- [ ] progresso live con fasi/query/fonti/evidenze/conflitti
-- [ ] report strutturato con citazioni cliccabili tracciabili alle fonti
-- [ ] fonti consultate vs usate distinte; conflitti e limiti visibili
-- [ ] rendering solo-testo sicuro (nessun HTML non attendibile)
-- [ ] test verdi; typecheck verde; nessun match `dangerouslySetInnerHTML`
+- [x] progresso live con fasi/query/fonti/evidenze/conflitti
+- [x] report strutturato con citazioni cliccabili tracciabili alle fonti
+- [x] fonti consultate vs usate distinte; conflitti e limiti visibili
+- [x] rendering solo-testo sicuro (nessun HTML non attendibile)
+- [x] test verdi; typecheck verde; nessun match `dangerouslySetInnerHTML`
 
 ---
 

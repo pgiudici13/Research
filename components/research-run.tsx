@@ -1,26 +1,37 @@
-// Contenitore della ricerca (Step 22): form + area di stato accessibile
-// (role="status", aria-live). La vista completa di progresso/report (fasi,
-// log eventi, report citato) arriva con lo Step 23, che estenderà questo
-// componente con phase-indicator/event-log/report-view.
+// Contenitore della ricerca (Step 22-23): form, area di stato accessibile,
+// progresso LIVE (phase-indicator + event-log + contatori) e, a fine stream,
+// la vista completa del report con citazioni cliccabili.
 
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { COPY, STATUS_LABELS } from "@/lib/ui-copy";
-import { errorTextForKey, useResearch } from "@/hooks/use-research";
+import {
+  deriveCounters,
+  derivePhaseStates,
+  errorTextForKey,
+  useResearch,
+  type ResearchStartInput,
+} from "@/hooks/use-research";
 import { ResearchForm } from "./research-form";
+import { PhaseIndicator } from "./phase-indicator";
+import { EventLog } from "./event-log";
+import { ReportView } from "./report-view";
 
 export function ResearchRun() {
   const { state, start, cancel, reset } = useResearch();
 
   const handleSubmit = useCallback(
-    (input: { question: string; options?: { depth?: 1 | 2 | 3; freshness?: "any" | "recent" | "year" } }) => {
+    (input: ResearchStartInput) => {
       start(input);
     },
     [start],
   );
 
   const running = state.macro === "running";
+  const phases = useMemo(() => derivePhaseStates(state.events), [state.events]);
+  const counters = useMemo(() => deriveCounters(state.events), [state.events]);
+
   const statusText =
     state.macro === "error"
       ? errorTextForKey(state.errorKey)
@@ -47,10 +58,26 @@ export function ResearchRun() {
         {state.macro === "done" && state.status === "cancelled" ? (
           <p>{COPY.status.cancelled}</p>
         ) : null}
-        {state.macro === "done" && state.report === null ? (
-          <p>{COPY.status.reportSoon}</p>
-        ) : null}
       </div>
+
+      {running ? (
+        <div className="live-progress" aria-label="Progresso della ricerca">
+          <PhaseIndicator phases={phases} />
+          <p className="counters muted">
+            Query {counters.queries} · Fonti trovate {counters.resultsFound} · Analizzate{" "}
+            {counters.sourcesFetched} · Fallite {counters.sourcesFailed} · Evidenze{" "}
+            {counters.evidences} · Conflitti {counters.conflicts}
+          </p>
+          <EventLog events={state.events} />
+        </div>
+      ) : null}
+
+      {state.macro === "done" && state.report !== null ? (
+        <ReportView report={state.report} />
+      ) : null}
+      {state.macro === "done" && state.report === null ? (
+        <p className="muted">{COPY.status.reportSoon}</p>
+      ) : null}
 
       {state.macro === "error" ? (
         <div className="error-box" role="alert">
