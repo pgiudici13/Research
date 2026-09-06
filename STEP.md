@@ -1018,7 +1018,7 @@ Step 3 (tipi), Step 11 (testo), Step 12 (ordine di analisi).
 
 ## Step 15 — Verifica della copertura e gap detection
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creata la Fase 9 con `research/verification/{coverage,checker}.ts`. `coverage.ts` puro e deterministico: `assessCoverage(plan, store, opts)` → `CoverageReport` con copertura per sotto-domanda (covered se ≥ 1 evidenza con relevance ≥ 0.25 oppure ≥ 2 low da fonti distinte; sotto-domande critical = claim chiave richiedono ≥ 2 sourceId diversi — soglie in `VERIFICATION_THRESHOLDS` documentate), gap tipizzati (`no-evidence`, `uncovered-subquestion`, `single-source`, `low-authority` .gov/.edu, `freshness` con data da `sourceDates` e anno dal clock iniettabile, `conflicting` da `conflictsBySub` dello Step 16) con query di follow-up generate SENZA LLM (`buildSubQuestionQueries`: testo sotto-domanda + varianti official/primary source/anno); `shouldContinue(round, maxDepth, budgetLeft, gaps)` con stop espliciti depth-reached/budget-exhausted/sufficient (mai loop); overall sufficient/partial/insufficient. `checker.ts` opzionale (LLM): `checkClaim` con schema JSON strict, vincolo tassativo `evidenceIds ⊆ evidenze passate` (violato → risposta scartata e verdetto unsupported senza invenzioni), fallback deterministico `deterministicVerdict` su unconfigured/errori/JSON invalido (mai `contradicted`, che richiede lo Step 16); abort utente propagato. Il modulo non corregge né elimina nulla. Test: 28 dedicati; suite: 262 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 
