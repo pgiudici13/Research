@@ -93,10 +93,14 @@ lib/
     progress.ts            (stati/fasi + eventi wire, import-safe client/server)
     api.ts                 (ApiErrorBody, schemaVersion; re-export ResearchRequest)
     index.ts
+  validate/
+    schema.ts              (type-guard componibili, ValidationError con percorso)
+    json.ts                (parse JSON robusto da LLM: strict/loose/block)
 tests/
   smoke.test.ts
   unit/config/             (test di env.ts e limits.ts)
   unit/types/              (test di serializzabilità/completezza dei tipi)
+  unit/validate/           (test di schema.ts e json.ts)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/` (config, tipi, validate, errori, logger, http, server/llm, server/search), `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti), `.env.example`. Nominare i percorsi effettivi in questo file quando il codice esisterà.

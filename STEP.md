@@ -444,7 +444,7 @@ Step 1 (Step 2 solo per valori numerici, non per i tipi).
 
 ## Step 4 — Validazione runtime e parsing JSON robusto (utility pure)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `lib/validate/schema.ts` (guard componibili str/num/bool/arr/enumOf/literal/nullable/opt/obj con policy unknownKeys strip|reject, `ValidationError` con percorso, helper `safe`) e `lib/validate/json.ts` (parseJsonStrict/Loose, `extractJsonValue`/`extractJsonBlock` con bilanciamento di blocchi `{...}`/`[...]`; `repairJsonLoose` deliberatamente non implementato: policy = retry LLM). Convenzione percorsi: chiavi `a.b`, indici `[n]`. Test: 40 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 
