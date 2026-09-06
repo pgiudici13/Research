@@ -1122,7 +1122,7 @@ Step 3, Step 14, Step 7 (LLM opzionale), Step 2.
 
 ## Step 17 — Motore Deep Research (loop orchestrator)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato il motore con `research/engine/{deps,budget,engine}.ts` + `research/progress/sink.ts`. `deps.ts`: `EngineDeps` con port tipizzate (plan/search/fetchPage/extract/makeEvidence/evidenceStore/assessCoverage/detectConflicts/synthesize/mapCitations + sink/now/logger) così la sintesi (Step 18) e le citazioni (Step 19) entrano come port iniettate senza attendere la loro implementazione. `budget.ts`: `RunBudget` da `limits`+`options` con clamp (depth/sources mai oltre env), `elapsed`, `canContinue`, consumi conteggiati (`queryAttempts/searchErrors/fetchAttempts/fetchFailed/llmCalls`) esposti in `BudgetUsage`, cache per-run dei canonical URL già tentati. `engine.ts`: `runResearch(request, deps, signal)` — id, sink, planning (fallback incluso) → round 1..maxDepth con concorrenza query 2 / fetch 4, dedup (Step 9), ranking (Step 12), selezione top-N = `min(maxSources−giàAnalizzate, 6)`, fetch+estrazione in try/catch (fallimenti contati, mai bloccanti), evidenze (Step 14), coverage/gap (Step 15), `shouldContinue` (depth/budget query/tempo → mai loop), contraddizioni (Step 16); fase finale `phase synthesizing` con `synthesize` → `mapCitations` → `ResearchReport`. Status: `completed` / `partial` (LLM giù, fonti mancanti, tempo, fetch falliti) / `failed` (nessun risultato utilizzabile) / `cancelled` (abort a ogni confine). Timeout globale check prima di ogni fase (margine 2s) → stop pulito `partial`, mai `E_TIMEOUT_RESEARCH` come crash. Eventi emessi sempre, `done` finale con riepilogo; mai log di prompt/contenuti. `sink.ts`: `ProgressSink` astratto + `createMemorySink` per test. Deviazioni documentate: la `SearchPort` esistente restituisce item già normalizzati (usata direttamente); evidenze da fonti con testo vuoto vengono scartate (nessuna citazione senza contenuto). Test: unit con fake deterministici (felice, 2° round per gap, budget query esaurito, timeout con clock finto → partial, cancel, SearXNG giù → failed, pagina irraggiungibile → continua) + integration `tests/integration/research-engine.test.ts` con fixture HTML reali (fetch ≤ budget, report cita solo fonti analizzate, contatori coerenti). Suite: 287 verdi (30 file); typecheck/lint/build puliti.
 
 ### Obiettivo
 
@@ -1190,12 +1190,12 @@ Step 2 (budget), Step 7–16 (tutti i moduli), Step 3 (report types). La sintesi
 
 ### Definition of Done
 
-- [ ] loop completo con round, budget, stop conditions e annullamento
-- [ ] risultati parziali/failed/cancelled espliciti e testati
-- [ ] nessuna possibilità di loop infinito (invariante testata)
-- [ ] nessun fetch duplicato intra-run (cache per-run)
-- [ ] integration test con fake verdi
-- [ ] note: integrazione finale con sintesi/citazioni reali completata con gli Step 18–19 e riverificata qui
+- [x] loop completo con round, budget, stop conditions e annullamento
+- [x] risultati parziali/failed/cancelled espliciti e testati
+- [x] nessuna possibilità di loop infinito (invariante testata)
+- [x] nessun fetch duplicato intra-run (cache per-run)
+- [x] integration test con fake verdi
+- [ ] note: integrazione finale con sintesi/citazioni reali completata con gli Step 18–19 e riverificata qui (richiede Step 18–19)
 
 ---
 
