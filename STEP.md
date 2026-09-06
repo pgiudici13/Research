@@ -1772,7 +1772,7 @@ Step 17 (engine), Step 12 (ranking), Step 2 (limiti), Step 30 (Pi) per le linee 
 
 ## Step 28 — Osservabilità: log strutturati e metriche
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: `lib/metrics.ts` con `ResearchMetrics`/`emptyMetrics` (rounds, queries, resultsFound, sourcesConsulted/Fetched/Failed, evidences, conflicts, llmCalls/llmFailures, searchErrors, fetchErrors, bytesFetched, planFallback, phases con durate ms). Il motore raccoglie e logga: `research.started` (researchId, clientRequestId, budget), `phase.ended` (phase, durationMs, counts) per ognuna delle 7 fasi (durate aggregate in `metrics.phases`), `research.finished` (status, durationMs, stoppedReason, metriche complete coerenti con `BudgetUsage`); logger child con base-context `{researchId, clientRequestId}` per correlazione su ogni riga; `clientRequestId` opzionale additivo su `ResearchRunInput`, passato dalla route; i log di errore del motore restano `errorCode` da `toErrorInfo` (Step 26) e la route logga `api.engine_crash` con code/phase/retryable (mai `String(err)`). Mai loggati prompt/contenuti/passaggi oltre preview: la domanda non compare nei log del motore. Test: `tests/unit/logger-metrics.test.ts` (4: redazione su oggetti annidati/Error con causa/Headers/array, valori tipo credenziale, correlazione child) + 2 test osservabilità in `failure-modes.test.ts` (started/finished/phase.ended con correlazione e metriche == BudgetUsage; llmFailures=2 e planFallback con piano+sintesi in fallback). Documentazione `docs/observability.md` con esempi di righe attese e cosa non loggare mai. Suite: 430 verdi (50 file); typecheck/lint/build/check:secrets puliti.
 
 ### Obiettivo
 
@@ -1811,11 +1811,11 @@ Step 5 (logger), Step 17 (engine), Step 21 (API requestId).
 
 ### Definition of Done
 
-- [ ] metriche per fase e totali raccolte e loggate
-- [ ] log inizio/fine con correlazione completa
-- [ ] redazione garantita da test di regressione
-- [ ] nessun prompt/contenuto integrale nei log
-- [ ] test verdi; typecheck verde
+- [x] metriche per fase e totali raccolte e loggate
+- [x] log inizio/fine con correlazione completa
+- [x] redazione garantita da test di regressione
+- [x] nessun prompt/contenuto integrale nei log
+- [x] test verdi; typecheck verde
 
 ---
 

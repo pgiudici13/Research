@@ -584,3 +584,58 @@ describe("matrice errori — route API", () => {
     expectClean(body, "body 429");
   });
 });
+
+describe("osservabilità — log di ricerca (Step 28)", () => {
+  function fieldsOf(h: Harness, event: string): Record<string, unknown> | undefined {
+    return h.logs.find((l) => l.event === event)?.fields as Record<string, unknown> | undefined;
+  }
+
+  it("research.started / phase.ended / research.finished con correlazione e metriche coerenti", async () => {
+    const h = buildHarness();
+    const report = await runResearch(
+      {
+        question: "Quando fu fondata l'Università di Pisa?",
+        options: { depth: 1, maxSources: 2 },
+        clientRequestId: "req-obs-1",
+      },
+      h.deps,
+      new AbortController().signal,
+    );
+
+    const started = fieldsOf(h, "research.started");
+    expect(started).toBeDefined();
+    expect(started?.clientRequestId).toBe("req-obs-1");
+    expect((started?.budget as Record<string, number>).maxQueries).toBeGreaterThan(0);
+
+    const finished = fieldsOf(h, "research.finished");
+    expect(finished).toBeDefined();
+    expect(finished?.status).toBe(report.status);
+    const metrics = finished?.metrics as Record<string, unknown>;
+    expect(metrics.queries).toBe(report.budgetUsed.queriesUsed);
+    expect(metrics.sourcesFetched).toBe(report.budgetUsed.sourcesAnalyzed);
+    expect(metrics.llmCalls).toBe(report.budgetUsed.llmCalls);
+    expect(metrics.rounds).toBe(1);
+    expect((metrics.phases as Record<string, number>).planning).toBeGreaterThanOrEqual(0);
+    expect((metrics.phases as Record<string, number>).synthesizing).toBeGreaterThanOrEqual(0);
+
+    const phaseEnded = h.logs.filter((l) => l.event === "phase.ended");
+    expect(phaseEnded.length).toBeGreaterThan(0);
+    const phases = phaseEnded.map((l) => (l.fields as Record<string, unknown>).phase);
+    for (const required of ["planning", "searching", "synthesizing"]) {
+      expect(phases).toContain(required);
+    }
+    // mai prompt/contenuti integrali nei log: la domanda non compare mai
+    for (const line of h.logs) expectClean(JSON.stringify(line), "log");
+    expect(JSON.stringify(h.logs)).not.toContain("Quando fu fondata");
+  });
+
+  it("i fallback LLM emergono come metriche (llmFailures/planFallback)", async () => {
+    const h = buildHarness({ planFallback: true, synthFallbackCode: "E_LLM_UNAVAILABLE" });
+    const report = await h.run();
+    expect(report.status).toBe("partial");
+    const finished = fieldsOf(h, "research.finished");
+    const metrics = finished?.metrics as Record<string, unknown>;
+    expect(metrics.llmFailures).toBe(2); // piano + sintesi in fallback
+    expect(metrics.planFallback).toBe(true);
+  });
+});

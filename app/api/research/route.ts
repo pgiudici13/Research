@@ -267,13 +267,20 @@ export async function POST(request: Request): Promise<Response> {
           question: parsed.value.question,
           options: parsed.value.options,
           researchId,
+          clientRequestId: requestId,
         },
         deps,
         runAbort.signal,
       );
     } catch (err) {
       if (runAbort.signal.aborted) return; // cancelled già emesso dal motore
-      logger.error("api.engine_crash", { researchId, error: String(err) });
+      const info = toErrorInfo(err);
+      logger.error("api.engine_crash", {
+        researchId,
+        code: info.code,
+        phase: info.phase,
+        retryable: info.retryable,
+      });
       sink.emit(makeErrorEvent(researchId, "engine", err));
       sink.emit({
         type: "done",

@@ -13,6 +13,7 @@
 import { getLimits } from "@/lib/config/limits";
 import { toErrorInfo } from "@/lib/errors";
 import { createLogger } from "@/lib/logger";
+import { emptyMetrics } from "@/lib/metrics";
 import type {
   Claim,
   Citation,
@@ -44,6 +45,8 @@ export interface ResearchRunInput {
   options?: ResearchOptions;
   /** Id predefinito (es. dall'API per l'header X-Research-Id); default: generato. */
   researchId?: string;
+  /** Correlazione con la richiesta HTTP (requestId del client/API). */
+  clientRequestId?: string;
 }
 
 /** FNV-1a (32 bit, hex) per id deterministici di fonte dal canonicalUrl. */
@@ -120,7 +123,10 @@ export async function runResearch(
   const researchId =
     input.researchId ??
     `res-${startedMs.toString(36)}-${fnv1aHex(Math.random().toString()).slice(0, 6)}`;
-  const logger = deps.logger ?? createLogger("engine");
+  const logger = (deps.logger ?? createLogger("engine")).child({
+    researchId,
+    ...(input.clientRequestId !== undefined ? { clientRequestId: input.clientRequestId } : {}),
+  });
   const limits = getLimits();
   const budget = new RunBudget({ limits, options: input.options, startedAt: startedMs });
 
@@ -144,6 +150,44 @@ export async function runResearch(
     emit("limitation", { note: text, ...(code !== undefined ? { code } : {}) });
   };
 
+  // --- osservabilità (Step 28): metriche, durate per fase, log inizio/fine ------
+  const metrics = emptyMetrics();
+  const phaseStartAt = new Map<string, number>();
+  const startPhase = (phase: string): void => {
+    phaseStartAt.set(phase, deps.now().getTime());
+  };
+  const endPhase = (phase: string): void => {
+    const startedAt = phaseStartAt.get(phase);
+    phaseStartAt.delete(phase);
+    const durationMs =
+      startedAt === undefined ? 0 : Math.max(0, deps.now().getTime() - startedAt);
+    metrics.phases[phase] = (metrics.phases[phase] ?? 0) + durationMs;
+    logger.info("phase.ended", {
+      researchId,
+      phase,
+      durationMs,
+      counts: { queries: budget.queriesUsed, sourcesAnalyzed: budget.sourcesAnalyzed },
+    });
+  };
+  const logFinished = (status: ResearchStatus, extra: Record<string, unknown> = {}): void => {
+    logger.info("research.finished", {
+      researchId,
+      status,
+      metrics,
+      ...extra,
+    });
+  };
+  logger.info("research.started", {
+    researchId,
+    clientRequestId: input.clientRequestId,
+    budget: {
+      maxQueries: budget.maxQueries,
+      maxSources: budget.maxSources,
+      maxDepth: budget.maxDepth,
+      timeoutMs: budget.researchTimeoutMs,
+    },
+  });
+
   const finishCancelled = (): ResearchReport => {
     const report: ResearchReport = {
       researchId,
@@ -161,6 +205,17 @@ export async function runResearch(
       completedAt: nowIso(),
       durationMs: budget.elapsed(deps.now()),
     };
+    metrics.rounds = budget.depthUsed;
+    metrics.queries = budget.queriesUsed;
+    metrics.llmCalls = budget.llmCalls;
+    metrics.searchErrors = budget.searchErrors;
+    metrics.fetchErrors = budget.fetchFailed;
+    logFinished("cancelled", {
+      durationMs: report.durationMs,
+      rounds: budget.depthUsed,
+      stoppedReason: "cancelled",
+      evidenceDropped: 0,
+    });
     deps.sink.emit({ type: "status", researchId, ts: nowIso(), status: "cancelled" });
     deps.sink.emit({ type: "done", researchId, ts: nowIso(), status: "cancelled" });
     return report;
@@ -168,6 +223,7 @@ export async function runResearch(
 
   emit("status", { status: "planning" });
   emit("phase", { phase: "planning", status: "started" });
+  startPhase("planning");
 
   // --- 1) planner ---------------------------------------------------------------
   let plan: ResearchPlan | null = null;
@@ -179,6 +235,8 @@ export async function runResearch(
     );
     plan = planOutcome.plan;
     if (planOutcome.usedFallback) {
+      metrics.planFallback = true;
+      metrics.llmFailures++;
       limitations.llmUnavailable = true;
       noteLimitation(
         planOutcome.llmError?.code ?? "E_LLM_UNAVAILABLE",
@@ -188,11 +246,14 @@ export async function runResearch(
   } catch (err) {
     if (aborted()) return finishCancelled();
     planFailed = true;
+    metrics.planFallback = true;
+    metrics.llmFailures++;
     limitations.llmUnavailable = true;
     noteLimitation("E_LLM_UNAVAILABLE", "Planner non disponibile: nessun piano generato.");
     logger.warn("engine.plan_failed", { researchId, errorCode: toErrorInfo(err).code });
   }
   emit("phase", { phase: "planning", status: "ended" });
+  endPhase("planning");
 
   if (planFailed || plan === null) {
     const report = assembleReport({
@@ -213,6 +274,14 @@ export async function runResearch(
       citations: [],
     });
     emitFinal(report, deps);
+    metrics.rounds = 0;
+    metrics.queries = budget.queriesUsed;
+    logFinished("failed", {
+      durationMs: report.durationMs,
+      rounds: 0,
+      stoppedReason: "plan-failed",
+      evidenceDropped: 0,
+    });
     return report;
   }
 
@@ -272,6 +341,7 @@ export async function runResearch(
     }
 
     emit("phase", { phase: "searching", status: "started" });
+    startPhase("searching");
     const itemsThisRound: SearchResultItem[] = [];
 
     for (let i = 0; i < queriesToRun.length; i++) {
@@ -288,6 +358,7 @@ export async function runResearch(
         continue;
       }
       for (const item of outcome.items) {
+        metrics.resultsFound++;
         itemsThisRound.push(item);
         const canonical = canonicalizeUrl(item.url);
         emit("result-found", {
@@ -300,6 +371,7 @@ export async function runResearch(
       }
     }
     emit("phase", { phase: "searching", status: "ended" });
+    endPhase("searching");
 
     // dedup + merge candidati (Step 9)
     const incoming = dedupeSearchResults(itemsThisRound).map((item) => toSourceCandidate(item));
@@ -334,6 +406,7 @@ export async function runResearch(
 
     // --- fetch (concorrenza 4) -----------------------------------------------------
     emit("phase", { phase: "fetching", status: "started" });
+    startPhase("fetching");
     const docs: Array<{ candidate: SourceCandidate; page: import("@/lib/types").ExtractedPage | null }> =
       [];
 
@@ -366,6 +439,7 @@ export async function runResearch(
         return;
       }
 
+      metrics.bytesFetched += outcome.doc.textBytes;
       const page = deps.extract(outcome.doc, { sourceId: candidate.sourceId, logger });
       const status = page.text === "" ? "unsupported" : "fetched";
       const record: SourceRecord = {
@@ -392,9 +466,11 @@ export async function runResearch(
       if (status === "fetched") budget.consumeSource();
     });
     emit("phase", { phase: "fetching", status: "ended" });
+    endPhase("fetching");
 
     // --- estrazione evidenze ---------------------------------------------------------
     emit("phase", { phase: "extracting", status: "started" });
+    startPhase("extracting");
     await mapConcurrency(docs, 4, async ({ page }) => {
       if (aborted() || page === null) return;
       const extracted = deps.makeEvidence({
@@ -416,14 +492,17 @@ export async function runResearch(
       }
     });
     emit("phase", { phase: "extracting", status: "ended" });
+    endPhase("extracting");
 
     // --- analisi: copertura e gap ------------------------------------------------------
     emit("phase", { phase: "analyzing", status: "started" });
+    startPhase("analyzing");
     const sourceDates = new Map<string, string | undefined>();
     for (const record of sourcesConsulted) sourceDates.set(record.sourceId, record.publishedDate);
 
     lastCoverage = deps.assessCoverage(plan, evidenceStore, { sourceDates });
     emit("phase", { phase: "analyzing", status: "ended" });
+    endPhase("analyzing");
 
     const decision = shouldContinue({
       round,
@@ -458,7 +537,9 @@ export async function runResearch(
 
   // --- 4) verifica (stato; checker opzionale negli Step successivi) -----------------------
   emit("phase", { phase: "verifying", status: "started" });
+  startPhase("verifying");
   emit("phase", { phase: "verifying", status: "ended" });
+  endPhase("verifying");
 
   // --- 5) sintesi + citazioni (porte iniettate: Step 18-19) -------------------------------
   const allEvidences = evidenceStore.all();
@@ -469,6 +550,7 @@ export async function runResearch(
 
   if (allEvidences.length > 0) {
     emit("phase", { phase: "synthesizing", status: "started" });
+    startPhase("synthesizing");
     try {
       budget.consumeLlm();
       const output = await deps.synthesize({
@@ -486,6 +568,7 @@ export async function runResearch(
       sections = output.sections;
       claims = output.claims;
       if (output.usedFallback === true) {
+        metrics.llmFailures++;
         limitations.llmUnavailable = true;
         noteLimitation(
           output.llmError?.code ?? "E_LLM_UNAVAILABLE",
@@ -503,11 +586,13 @@ export async function runResearch(
     } catch (err) {
       if (aborted()) return finishCancelled();
       synthOk = false;
+      metrics.llmFailures++;
       limitations.llmUnavailable = true;
       noteLimitation("E_LLM_UNAVAILABLE", "Sintesi non disponibile: report senza sezioni.");
       logger.warn("engine.synthesis_failed", { researchId, errorCode: toErrorInfo(err).code });
     }
     emit("phase", { phase: "synthesizing", status: "ended" });
+    endPhase("synthesizing");
   }
 
   // --- 6) report finale ---------------------------------------------------------------------
@@ -555,15 +640,24 @@ export async function runResearch(
   emit("status", { status });
   emitFinal(report, deps);
 
-  logger.info("engine.completed", {
-    researchId,
-    status,
-    queries: budget.queriesUsed,
-    sources: budget.sourcesAnalyzed,
-    evidences: allEvidences.length,
+  metrics.rounds = budget.depthUsed;
+  metrics.queries = budget.queriesUsed;
+  metrics.sourcesConsulted = sourcesConsulted.length;
+  metrics.sourcesFetched = sourcesConsulted.filter((s) => s.status === "fetched").length;
+  metrics.sourcesFailed = sourcesConsulted.filter((s) => s.status === "failed").length;
+  metrics.evidences = allEvidences.length;
+  metrics.conflicts = conflicts.length;
+  metrics.llmCalls = budget.llmCalls;
+  metrics.searchErrors = budget.searchErrors;
+  metrics.fetchErrors = budget.fetchFailed;
+  logFinished(report.status, {
+    durationMs: report.durationMs,
     rounds: budget.depthUsed,
     stoppedReason,
     evidenceDropped,
+    queries: budget.queriesUsed,
+    sources: budget.sourcesAnalyzed,
+    evidences: allEvidences.length,
   });
   return report;
 }

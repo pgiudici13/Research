@@ -4,13 +4,13 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–27 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–28 di `STEP.md`):
 
-- repository con 41 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection + matrice errori + performance);
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md, error-matrix.md, performance.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (424 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- repository con 42 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL + fetch/extract pagine + scoring fonti + planner + evidence + verifica/gap + contraddizioni + motore di ricerca + sintesi/citazioni + API NDJSON + frontend di ricerca + audit sicurezza + policy prompt-injection + matrice errori + performance + osservabilità);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md, error-matrix.md, performance.md, observability.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (430 test verdi), `vitest.config.mts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink, wire protocol NDJSON); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); API `app/api/` (POST /api/research NDJSON + GET /api/health) con `lib/server/rate-limit.ts` e assemblaggio deps `lib/server/research/deps.ts`; dettagli e albero completo in §5;
-- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel e gli step trasversali successivi (osservabilità/consolidamento test); audit sicurezza (Step 24), policy prompt-injection (Step 25), matrice errori (Step 26) e performance (Step 27) completati e documentati in `docs/` e README;
+- NON ancora presenti: configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel e il consolidamento test dello Step 29; audit sicurezza (24), prompt-injection (25), matrice errori (26), performance (27) e osservabilità (28) completati e documentati in `docs/` e README;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -64,7 +64,7 @@ Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `
 
 ## 5. Struttura repository
 
-La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–27 completati):
+La struttura reale va aggiornata a ogni milestone (roadmap operativa: `STEP.md`). Struttura attuale (Step 1–28 completati):
 
 ```text
 AGENTS.md
@@ -81,6 +81,7 @@ docs/
   security.md             (checklist audit sicurezza AGENTS §9, esito per voce)
   error-matrix.md         (matrice errori → comportamento/classe/dove verificato)
   performance.md          (budget/conteggi attesi, linee guida Vercel e Pi)
+  observability.md        (log attesi, correlazione researchId, policy redazione)
 scripts/
   check-secrets.mjs       (scanner attivo: chiavi, .env tracciati, 1234, placeholder .env.example)
 app/
@@ -116,6 +117,7 @@ lib/
     json.ts                (parse JSON robusto da LLM: strict/loose/block)
   errors.ts                (tassonomia C.4: ErrorCode, ERROR_CATALOG, AppError, toErrorInfo)
   logger.ts                (log JSON strutturato con redazione automatica)
+  metrics.ts               (ResearchMetrics per-run: totali, byte, fasi con durate)
   http/
     timeout.ts             (withTimeout senza timer leak)
     retry.ts               (backoff esponenziale + jitter, AbortSignal, retryable)
@@ -195,6 +197,7 @@ tests/
     server/rate-limit.test.ts (test del rate limiter con clock finto)
     hooks/use-research.test.ts (test del reducer/reader/derive puri)
     ui-copy.test.ts        (completezza: ogni ErrorCode ha testo utente in ERROR_COPY)
+    logger-metrics.test.ts (redazione su payload complessi + metriche per-run)
     components/            (test jsdom: form, run E2E, report, pannelli)
   integration/
     research-engine.test.ts (motore con dipendenze fake + fixture HTML reali)
