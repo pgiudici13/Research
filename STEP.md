@@ -541,7 +541,7 @@ Step 2 (LOG_LEVEL), Step 3 (ErrorInfo).
 
 ## Step 6 — Utility HTTP: timeout, retry e guardia SSRF
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `lib/http/timeout.ts` (withTimeout con timer sempre pulito), `lib/http/retry.ts` (retry con backoff esponenziale + jitter ±20%, `isRetryable` iniettabile, rispetto immediato di AbortSignal anche durante l'attesa) e `lib/http/ssrf.ts` (BlockList node:net per IP privati/riservati v4/v6 incl. v4-mapped; hostname riservati; lookup DNS iniettabile con blocco se un qualunque indirizzo è vietato; `assertAllowedFixedHost` per l'allowlist SearXNG). `errors.ts`: aggiunto override per-istanza `retryable` (per 401 non ritentabili). Policy porte documentata: nessun blocco porte su host pubblici. Test: 81 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 

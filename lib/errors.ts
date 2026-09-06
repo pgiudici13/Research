@@ -82,6 +82,8 @@ export interface AppErrorOptions {
   /** Messaggio pubblico alternativo (deve restare NON sensibile). */
   message?: string;
   phase?: string;
+  /** Override per-istanza di retryable (es. 401 = unavailable ma non ritentabile). */
+  retryable?: boolean;
   details?: unknown;
   cause?: unknown;
 }
@@ -100,7 +102,7 @@ export class AppError extends Error {
     this.name = "AppError";
     this.code = code;
     this.phase = options.phase ?? entry.phase;
-    this.retryable = entry.retryable;
+    this.retryable = options.retryable ?? entry.retryable;
     this.httpStatus = entry.httpStatus;
     if (options.details !== undefined) this.details = options.details;
     if (options.cause !== undefined) this.cause = options.cause;

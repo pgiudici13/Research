@@ -98,6 +98,10 @@ lib/
     json.ts                (parse JSON robusto da LLM: strict/loose/block)
   errors.ts                (tassonomia C.4: ErrorCode, ERROR_CATALOG, AppError, toErrorInfo)
   logger.ts                (log JSON strutturato con redazione automatica)
+  http/
+    timeout.ts             (withTimeout senza timer leak)
+    retry.ts               (backoff esponenziale + jitter, AbortSignal, retryable)
+    ssrf.ts                (guardia SSRF: IP/hostname privati, lookup DNS, allowlist fissa)
 tests/
   smoke.test.ts
   unit/config/             (test di env.ts e limits.ts)
