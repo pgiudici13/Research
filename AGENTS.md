@@ -4,14 +4,14 @@
 
 Questo documento descrive sia il contesto prodotto richiesto sia le regole per costruire il progetto senza confondere intenzioni e implementazione.
 
-Alla data dell’ultima ispezione (repository aggiornato dallo Step 1 di `STEP.md`):
+Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–9 di `STEP.md`):
 
-- repository senza commit su `main` (solo `git init`), con lo scaffold Next.js nel working tree;
-- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`;
+- repository con 10 commit su `main` (scaffold Next.js + fondamenti + client NVIDIA/SearXNG + dedup URL);
+- file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder), `scripts/check-secrets.mjs` (placeholder), `app/`, `lib/`, `research/urls/`, `tests/` (126 test verdi), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
-- struttura reale: `app/` (`layout.tsx`, `page.tsx` segnaposto, `globals.css`, `favicon.ico`), `.env.example` (solo placeholder), `lib/config/` (`env.ts`, `limits.ts`), `tests/smoke.test.ts`, `tests/unit/config/`, `scripts/check-secrets.mjs` (placeholder), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
-- NON ancora presenti: API route, client NVIDIA/SearXNG, motore di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi, SearXNG o Cloudflare Tunnel, componenti UI di ricerca;
-- nessuna variabile d’ambiente definita nel repository; nessun segreto presente.
+- modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione e deduplica); dettagli e albero completo in §5;
+- NON ancora presenti: API route, `app/api/`, motore di ricerca (`research/engine` e pipeline), planner, fetch/extract pagine, sintesi/citazioni, frontend di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi/SearXNG/Cloudflare Tunnel;
+- nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
 
