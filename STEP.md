@@ -862,7 +862,7 @@ Step 3 (tipi), Step 10 (RawDocument).
 
 ## Step 12 — Source scoring e ranking dei candidati
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato `research/scoring/score.ts` con funzioni pure deterministiche: segnali normalizzati [0,1] e documentati (relevance con pesi title>snippet 0.6/0.4 via overlap di token; richness; freshness con decay lineare su mezza vita 730gg SOLO se richiesta, altrimenti neutro 0.5 e flag `unknownDate`; authority = TLD `.gov/.edu` o suffisso di `authorityDomains`, hook VUOTO di default; independence saturato a 3+; primarySource euristica lessicale conservativa marcata `primary-source-heuristic`), pesi espliciti in `WEIGHTS` (somma 1), `scoreCandidate` + `rankCandidates` stabile e senza scarti. Anti-pattern testati: lo snippet non è prova e nessuna API espone concetti di veridicità; data ignota non domina (diff ≤ peso). Deviazione documentata: per il segnale di freschezza è stato aggiunto `publishedDate?: string` a `SourceCandidate` (campo opzionale additivo in `lib/types/research.ts`, propagato in `mergeCandidates` di Step 9) perché il candidato non portava la data del risultato. Test: 23 dedicati; suite: 189 verdi; typecheck/lint/build puliti.
 
 ### Obiettivo
 

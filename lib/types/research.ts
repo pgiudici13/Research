@@ -122,6 +122,8 @@ export interface SourceCandidate {
   snippet: string;
   engines: string[];
   occurrences: number;
+  /** Data pubblicazione dichiarata dal motore (Step 12: segnale di freschezza). */
+  publishedDate?: string;
   rankScore?: number;
 }
 

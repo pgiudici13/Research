@@ -84,6 +84,7 @@ export function mergeCandidates(
       occurrences: current.occurrences + candidate.occurrences,
       title: candidate.title.length > current.title.length ? candidate.title : current.title,
       snippet: candidate.snippet.length > current.snippet.length ? candidate.snippet : current.snippet,
+      publishedDate: current.publishedDate ?? candidate.publishedDate,
       rankScore: current.rankScore ?? candidate.rankScore,
     };
     const index = out.indexOf(current);
