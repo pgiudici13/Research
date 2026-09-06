@@ -1426,7 +1426,7 @@ Step 17 (engine), Step 20 (eventi/sink), Step 5 (toErrorInfo), Step 2 (limits), 
 
 ## Step 22 — Frontend: form di ricerca, avvio, annullamento e stati
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creata la shell della UI. `lib/ui-copy.ts`: testi italiani puri (COPY + PHASE_LABELS/STATUS_LABELS), import-safe client. `hooks/use-research.ts` ("use client", nessun modulo server): reducer PURO `researchReducer` (macro idle/running/done/error; eventi cap 300; `result` → report, `done` → terminale), `readResearchStream` (ReadableStream+TextDecoder con buffering di righe spezzate e parseEventLine — mai testo grezzo), `errorKeyForCode`/`errorTextForKey` (codice stabile → testo UI, mai body grezzo), derivazioni pure `derivePhaseStates`/`deriveCounters`, hook `useResearch` (start→fetch POST /api/research con AbortController per cancel, gestione !ok con ApiErrorBody e errori di rete distinti, abort utente mai errore). Componenti: `research-form.tsx` (label htmlFor, textarea con contatore max 1000, select profondità/freschezza, validazione client 10..1000 con errore aria-live, submit disabilitato in running, Annulla con aria-label, Ctrl+Enter gestito dal form) e `research-run.tsx` (area stato `role=status aria-live` con spinner, messaggi macro, errore con Riprova; placeholder "report nello Step 23"). `app/page.tsx` riscritto come client che monta la UI; `globals.css` esteso (responsive, focus visible). Dev-deps aggiunte e motivate: `jsdom`, `@testing-library/react`, `@testing-library/dom`, `@testing-library/user-event` (test componente jsdom via `// @vitest-environment jsdom`). Test: 17 dedicati (reducer/stream/derive 9, form 5, run E2E con fetch mockato 3); typecheck/lint/build puliti.
 
 ### Obiettivo
 
@@ -1468,11 +1468,11 @@ Step 20 (tipi evento client), Step 21 (API), Step 1 (tooling test).
 
 ### Definition of Done
 
-- [ ] form con validazione, opzioni e contatore caratteri
-- [ ] avvio/annullamento funzionanti con feedback accessibile
-- [ ] stati loading/error/empty implementati
-- [ ] test componenti verdi; typecheck verde
-- [ ] nessun segreto/dettaglio infrastrutturale nella UI
+- [x] form con validazione, opzioni e contatore caratteri
+- [x] avvio/annullamento funzionanti con feedback accessibile
+- [x] stati loading/error/empty implementati
+- [x] test componenti verdi; typecheck verde
+- [x] nessun segreto/dettaglio infrastrutturale nella UI
 
 ---
 
