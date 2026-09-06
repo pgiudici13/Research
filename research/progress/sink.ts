@@ -2,6 +2,7 @@
 // (l'API farà la serializzazione NDJSON nello Step 20; qui solo il contratto).
 // Nessuna dipendenza runtime: importabile ovunque.
 
+import { serializeEvent } from "./events";
 import type { ProgressEvent } from "@/lib/types";
 
 export interface ProgressSink {
@@ -31,4 +32,21 @@ export function eventsOfType<T extends ProgressEvent["type"]>(
   type: T,
 ): Array<Extract<ProgressEvent, { type: T }>> {
   return events.filter((e): e is Extract<ProgressEvent, { type: T }> => e.type === type);
+}
+
+/** Destinazione testuale di uno stream NDJSON (una riga per evento). */
+export interface NdjsonWriter {
+  write(line: string): void;
+}
+
+/**
+ * Sink che serializza ogni evento come riga NDJSON verso un writer (per
+ * l'API dello Step 21). Mai sincrono-bloccante; il writer decide il trasporto.
+ */
+export function createStreamSink(writer: NdjsonWriter): ProgressSink {
+  return {
+    emit(event: ProgressEvent): void {
+      writer.write(`${serializeEvent(event)}\n`);
+    },
+  };
 }

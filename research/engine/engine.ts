@@ -443,6 +443,13 @@ export async function runResearch(
 
   // --- 3) contraddizioni consolidate ---------------------------------------------------
   conflicts = deps.detectConflicts(evidenceStore.all());
+  for (const conflict of conflicts) {
+    emit("conflict", {
+      conflictId: conflict.id,
+      topic: conflict.topic,
+      severity: conflict.severity,
+    });
+  }
 
   // --- 4) verifica (stato; checker opzionale negli Step successivi) -----------------------
   emit("phase", { phase: "verifying", status: "started" });

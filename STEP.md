@@ -1312,7 +1312,7 @@ Step 3, Step 14 (evidenze), Step 10 (SourceRecord), Step 18 (si integra con la t
 
 ## Step 20 — Modello di progress ed execution state (wire protocol)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creato `research/progress/events.ts` (import-safe client/server) con `serializeEvent`/`parseEventLine` (una riga NDJSON per evento; riga vuota/JSON malformato/shape invalida → `null`), guard di runtime `isProgressEvent` con check per-tipo su TUTTI i 12 eventi (verifica campi obbligatori e tipi; `schemaVersion: 1` e report ben formato per `result`), macchina a stati `canTransitionStatus`/`assertValidStatusTransition` (ordine canonico `planning → … → synthesizing`, salti in avanti ammessi — il motore non emette ogni stato intermedio — terminali completed/partial/failed/cancelled SOLO da stato in corso, terminali assorbenti, `cancelled` da qualunque fase, mai in testa), limiti preview `EVENT_LIMITS` (snippet ≤ 400, preview ≤ 300) e contratto di segretezza `eventHasForbiddenFields` (ricorsivo su campi apiKey/token/secret/password/cookie/authorization…). `research/progress/sink.ts`: aggiunto `createStreamSink(writer)` che serializza ogni evento come riga NDJSON (per l'API Step 21). Motore (Step 17): ora emette anche gli eventi `conflict` per ogni conflitto rilevato (prima mancavano). Nota: i tipi evento erano già in `lib/types/progress.ts` (Step 3) — qui completati serializzazione/guard/macchina/streaming. Test: 12 dedicati (round-trip di ogni tipo evento, malformati → null, transizioni valide/invalide, preview, nessun campo segreto, sink array+stream); typecheck/lint puliti.
 
 ### Obiettivo
 
@@ -1359,11 +1359,11 @@ Step 3 (tipi progress), Step 17 (sink usato dall'engine).
 
 ### Definition of Done
 
-- [ ] set eventi e macchina a stati implementati e testati
-- [ ] serializzazione NDJSON round-trip
-- [ ] sink astratto (array/stream) condiviso
-- [ ] nessun segreto/contenuto integrale negli eventi
-- [ ] test verdi; typecheck verde
+- [x] set eventi e macchina a stati implementati e testati
+- [x] serializzazione NDJSON round-trip
+- [x] sink astratto (array/stream) condiviso
+- [x] nessun segreto/contenuto integrale negli eventi
+- [x] test verdi; typecheck verde
 
 ---
 
