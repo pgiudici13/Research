@@ -1203,7 +1203,7 @@ Step 2 (budget), Step 7–16 (tutti i moduli), Step 3 (report types). La sintesi
 
 ## Step 18 — Synthesizer LLM su evidenze strutturate
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creata la Fase 12 con `research/synthesis/{synthesize,fallback}.ts` + prompt in `lib/server/llm/prompts.ts` (`SYNTHESIS_SYSTEM_PROMPT`, versionato `synthesis-v1`). `synthesizeReport`: costruisce la tabella citazioni con `buildCitationTable` (Step 19, stesso ordinamento del motore), manda all'LLM SOLO evidenze numerate come DATO (delimitatori espliciti + avviso di non-attendibilità, policy Step 25; schema JSON strict `unknownKeys: reject` con kind `fact/inference/uncertain`, sezioni ≤ 8, paragrafi ≤ 8/≤ 4k char), valida la logica post-LLM (`validateSynthesisSections`: paragrafi non vuoti, citazioni INTERE ed esistenti in tabella, totale ≤ 24k char) con un retry mirato di correzione (al massimo 2 chiamate: JSON/schema invalido rientra nel retry, gli errori infrastruttura no); al secondo output invalido → fallback deterministico. I `Claim` sono derivati SOLO dai paragrafi validati via `deriveClaims` (mai dal modello). Fallback (`buildFallbackSynthesis`): sezione per sotto-domanda con SOLO passaggi verbatim (etichetta `kind: uncertain` + prefisso "Sintesi meccanica senza LLM"), citazioni numeriche reali, sotto-domanda senza evidenze dichiarata esplicitamente, evidenze non assegnate mai perse, sezione Conflitti con entrambe le posizioni (mai risolti), sezione Limiti. `usedFallback: true` + `llmError` safe (E_LLM_UNAVAILABLE unconfigured/infrastruttura o E_LLM_INVALID_RESPONSE). Abort utente propagato, mai fallback. Log solo esiti/contatori. Test: 27 dedicati (prompt testuali 8, fallback 8, synthesize con chatJson mockato 11); suite: 325 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 
@@ -1248,11 +1248,11 @@ Step 3 (tipi report), Step 7 (chatJson), Step 14–16 (evidenze/conflitti), Step
 
 ### Definition of Done
 
-- [ ] synthesizer con tabella citazioni pre-assegnata e validazione post-LLM
-- [ ] fallback deterministico senza LLM, marcato esplicitamente
-- [ ] distinzione fact/inference/uncertain nel modello dati
-- [ ] conflitti presentati, mai risolti
-- [ ] test verdi; typecheck verde
+- [x] synthesizer con tabella citazioni pre-assegnata e validazione post-LLM
+- [x] fallback deterministico senza LLM, marcato esplicitamente
+- [x] distinzione fact/inference/uncertain nel modello dati
+- [x] conflitti presentati, mai risolti
+- [x] test verdi; typecheck verde
 
 ---
 
