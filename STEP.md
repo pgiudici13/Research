@@ -1716,7 +1716,7 @@ Tutti gli step funzionali 7–23 (scenari), Step 3 (codici), Step 5.
 
 ## Step 27 — Ottimizzazione prestazioni (Vercel e Raspberry Pi)
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: verifica strumentata dei budget con test DETERMINISTICI sui conteggi (mai secondi). `tests/integration/performance.test.ts` (7) con fake senza rete: fetch solo dei top-N (mai oltre `maxSources`, `fetchAttempts == sourcesAnalyzed`), stesso URL da query diverse → una sola fetch (cache per-run sul canonical, anche con tracking `?utm=`), nessuna LLM call senza evidenze (sintesi saltata), ricerca tipica → una sola sintesi e `llmCalls=1` ≤ tetto `depth*2+2`, nessun URL rifetchato tra i round (cache per-run persiste), tetto LLM per profondità e clamp `RunBudget` verificati. Nessuna ottimizzazione speculativa introdotta: le misure esistenti (ranking prima del fetch, dedup canonical, cache per-run, LLM seriale, troncamenti 60k/1.2k/40) sono quantificate. `docs/performance.md`: tabella numeri attesi per ricerca tipica (query/fetch/byte/LLM) con puntatori ai limiti C.2, linee guida Vercel (`maxDuration` coerente, rate limit in-memory per funzione da rivalutare al deploy) e Raspberry Pi (solo SearXNG con engine essenziali/limiter/cache/1 worker; il fetch resta su Vercel con motivazione di latenza e concorrenza). Suite: 424 verdi (49 file); typecheck/lint/build/check:secrets puliti.
 
 ### Obiettivo
 
@@ -1760,11 +1760,11 @@ Step 17 (engine), Step 12 (ranking), Step 2 (limiti), Step 30 (Pi) per le linee 
 
 ### Definition of Done
 
-- [ ] conteggi/limiti verificati da test deterministici (niente richieste inutili)
-- [ ] cache intra-run (e TTL se introdotta) testate
-- [ ] documentazione performance Vercel/Pi aggiornata
-- [ ] nessuna ottimizzazione speculativa senza misura
-- [ ] test verdi; typecheck verde
+- [x] conteggi/limiti verificati da test deterministici (niente richieste inutili)
+- [x] cache intra-run (e TTL se introdotta) testate
+- [x] documentazione performance Vercel/Pi aggiornata
+- [x] nessuna ottimizzazione speculativa senza misura
+- [x] test verdi; typecheck verde
 
 ---
 
