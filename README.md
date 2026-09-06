@@ -1,8 +1,12 @@
 # Deep Research
 
-App di Deep Research: trasforma una domanda in una risposta sintetica, verificabile e citata.
+Applicazione web per ricerche guidate, con pianificazione LLM, raccolta di fonti, estrazione di evidenze, verifica e citazioni. La UI riceve aggiornamenti live via NDJSON.
 
-> **Stato attuale**: repository in implementazione incrementale secondo la roadmap in `STEP.md` (roadmap aggiornata lì step per step). Gli Step 1–25 sono completati: pipeline di ricerca completa (planner → search → fetch → evidence → verifica → contraddizioni → sintesi/citazioni), API NDJSON con rate limit, frontend di ricerca, audit sicurezza e policy prompt-injection. Restano le fasi di deploy (Vercel, Raspberry Pi/SearXNG, Cloudflare Tunnel) e gli step trasversali successivi. Le specifiche e i vincoli di prodotto sono in `AGENTS.md`.
+## Stato operativo
+
+L'app è distribuita su [Vercel](https://deep-research-pearl.vercel.app/). Il backend chiama SearXNG sul Raspberry Pi attraverso un Cloudflare Quick Tunnel HTTPS autenticato da Caddy; NVIDIA viene usato solo dal server per planning e sintesi.
+
+Il Raspberry Pi è stato verificato: Caddy e SearXNG sono attivi e SearXNG restituisce risultati per query generiche. Le query troppo specifiche vengono ritentate con parole chiave compatte; se SearXNG è indisponibile o vuoto, il backend prova DuckDuckGo. Risultati e disponibilità dei motori esterni possono comunque variare.
 
 ## Stack (reale)
 
@@ -11,7 +15,7 @@ App di Deep Research: trasforma una domanda in una risposta sintetica, verificab
 - Vitest (test runner)
 - npm
 
-Il sistema è end-to-end: l'UI chiama `POST /api/research` (stream NDJSON), il motore orchestra le fasi e produce un report citato. In assenza di chiavi NVIDIA o SearXNG configurate il comportamento degrada in modo deterministico e dichiarato, senza crash.
+Il sistema è end-to-end: l'UI chiama `POST /api/research` (stream NDJSON), il motore orchestra le fasi e produce un report citato. In assenza di NVIDIA o di una ricerca disponibile il comportamento degrada in modo esplicito, senza esporre segreti né inventare citazioni.
 
 ## Sicurezza: contenuti web come dati
 
@@ -30,6 +34,19 @@ Fixture di attacco in `tests/fixtures/html/injection.html`; policy e test in `te
 npm install
 npm run dev        # http://localhost:3000
 ```
+
+Copiando `.env.example` in un file locale non tracciato, configura i valori necessari. Non usare mai chiavi reali nel repository.
+
+```text
+NVIDIA_API_KEY=
+NVIDIA_MODEL=meta/muse-glimmer-30b
+SEARXNG_BASE_URL=
+RESEARCH_INTERNAL_AUTH_TOKEN=
+```
+
+## Produzione
+
+Le variabili sono configurate esclusivamente nei secret settings di Vercel. Quelle richieste sono `NVIDIA_API_KEY`, `NVIDIA_MODEL`, `SEARXNG_BASE_URL` e `RESEARCH_INTERNAL_AUTH_TOKEN`; `NVIDIA_BASE_URL` usa di default l'endpoint NVIDIA Integrate. La checklist di deploy e diagnosi è in [docs/deployment.md](docs/deployment.md); il setup del Pi è in [pi/README.md](pi/README.md).
 
 ## Comandi
 

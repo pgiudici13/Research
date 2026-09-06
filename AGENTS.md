@@ -10,7 +10,8 @@ Alla data dell’ultima ispezione (repository aggiornato dagli Step 1–30 di `S
 - file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`, `.env.example` (solo placeholder, tracciato), `docs/` (security.md, error-matrix.md, performance.md, observability.md, testing.md), `scripts/check-secrets.mjs` (scanner attivo), `app/` (con `api/` e UI), `components/`, `hooks/`, `lib/`, `research/` (urls, fetch, extract, scoring, planning, evidence, verification, contradictions, engine, progress, synthesis, citations), `tests/` (432 test verdi, copertura 94.38% lines su lib/research/api), `vitest.config.mts`, `tests/setup/`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
 - modulo config: `lib/config/env.ts` + `lib/config/limits.ts`; tipi condivisi: `lib/types/`; validazione: `lib/validate/`; `lib/errors.ts` + `lib/logger.ts`; `lib/http/` (timeout/retry/SSRF); server-only: `lib/server/llm/` (NVIDIA) e `lib/server/search/` (SearXNG); `research/urls/` (canonicalizzazione/deduplica), `research/fetch/` (fetcher SSRF-guarded), `research/extract/` (testo leggibile da HTML), `research/scoring/` (ranking), `research/planning/` (planner + fallback), `research/evidence/` (evidenze), `research/verification/` (gap detection), `research/contradictions/` (conflitti), `research/engine/` (motore Deep Research: loop orchestrato) + `research/progress/` (ProgressSink, wire protocol NDJSON); sintesi `research/synthesis/` (LLM + fallback deterministico) e citazioni `research/citations/` (mapping deterministico); API `app/api/` (POST /api/research NDJSON + GET /api/health) con `lib/server/rate-limit.ts` e assemblaggio deps `lib/server/research/deps.ts`; dettagli e albero completo in §5;
-- completati e documentati in `docs/`: gli step trasversali 24–29 (security, prompt-injection, errori, performance, osservabilità, testing) e la Fase 23 Step 30 (deployment Pi) — quest’ultimo eseguito su hardware reale (SearXNG in Docker solo loopback + Caddy auth + fix memcg, vedi `pi/`); in corso Step 31 (Cloudflare Tunnel): `cloudflared` installato sul Pi, manca il login interattivo dell’utente; NON ancora presenti: configurazione Vercel di deploy (Step 32) e la parte tunnel attiva;
+- completati e documentati in `docs/`: gli step trasversali 24–29 e il deploy operativo. L'app è pubblicata su Vercel; `cloudflared` è attivo sul Pi come Quick Tunnel verso Caddy/SearXNG. Vercel conserva server-side `NVIDIA_API_KEY`, `NVIDIA_MODEL`, `SEARXNG_BASE_URL` e `RESEARCH_INTERNAL_AUTH_TOKEN`. Il Quick Tunnel è temporaneo: l'hostname deve essere aggiornato nei secret Vercel dopo un riavvio. La checklist è in `docs/deployment.md`;
+- il Pi reale è verificato: Caddy ascolta su `127.0.0.1:8080`, SearXNG Docker su `127.0.0.1:8893`, entrambi sani e autenticati. SearXNG restituisce risultati per query generiche; query troppo specifiche possono essere vuote, perciò il backend riprova una query compatta e poi gli endpoint DuckDuckGo gratuiti;
 - suite: 432 test verdi (51 file); copertura informativa (v8): lines 94.38% su `lib/**`+`research/**`+`app/api/**`; guardia anti-rete `tests/setup/no-network.ts` attiva in tutti i test;
 - nessuna variabile d’ambiente definita (valori); nessun segreto presente.
 
@@ -34,7 +35,7 @@ Questa è l’architettura **pianificata**, non ancora presente nel repository:
 
 1. **Frontend e API pubbliche su Vercel**: interfaccia web e backend server-side per autenticazione/validazione della richiesta, orchestrazione della ricerca e streaming dello stato.
 2. **Raspberry Pi 3B, hostname `p-pi`**: esegue SearXNG e i servizi di ricerca/fetch eventualmente necessari in rete privata.
-3. **Cloudflare Tunnel**: espone il servizio del Pi tramite un hostname HTTPS senza aprire direttamente porte inbound sul router o pubblicare l’IP del Pi.
+3. **Cloudflare Quick Tunnel**: espone temporaneamente il servizio del Pi tramite un hostname HTTPS senza aprire direttamente porte inbound sul router o pubblicare l’IP del Pi. Per produzione stabile sostituirlo con un tunnel nominato.
 4. **NVIDIA API**: fornisce il modello LLM dal backend server-side. La chiave non deve mai raggiungere browser, bundle client, log o repository.
 
 Flusso previsto:
@@ -58,7 +59,7 @@ Il backend Vercel è il confine di sicurezza e orchestrazione. Il browser non de
 
 - fetch HTTP nativo, senza aggiungere dipendenze inutili;
 - client SearXNG server-side come motore meta-search (implementato nello Step 8); il servizio SearXNG sul Pi resta da configurare;
-- Cloudflare Tunnel per il collegamento al Pi (Step 31);
+- Cloudflare Quick Tunnel per il collegamento temporaneo al Pi; tunnel nominato pianificato per un hostname stabile;
 - client NVIDIA API server-side per chiamate LLM (implementato nello Step 7); planner e sintesi finale usano/ useranno questo confine, ma la sintesi finale non è ancora implementata.
 
 Quando viene aggiunto un framework o una libreria, aggiornare questa sezione e `package.json`; non descrivere lo stack “target” come stack effettivo.
@@ -220,7 +221,7 @@ pi/
   docs/verifica.md          (checklist eseguita su hardware reale: 401/200, healthz, memoria, carico)
 ```
 
-Struttura deploy (Step 30, file reali nel repo — mai segreti): `pi/` come sopra. Sul Pi i file reali hanno valori generati localmente (`openssl rand -hex 32`) in `/home/admin/.secrets/deep-research.env` e `/etc/caddy/env` (600), mai nel repository. Stato Fase 23: Step 30 completato su hardware; Step 31 parziale (cloudflared installato, login tunnel interattivo pendente); Step 32 (Vercel) da fare.
+Struttura deploy: `pi/` contiene solo esempi, mai segreti. Sul Pi i valori reali restano in `/home/admin/.secrets/deep-research.env` e `/etc/caddy/env` (600). Stato: Quick Tunnel attivo e Vercel distribuito; `docs/deployment.md` descrive verifica, diagnosi e rollback. Un Cloudflare Tunnel nominato resta un miglioramento futuro, perché il Quick Tunnel cambia hostname ai riavvii.
 
 ## 6. Pipeline Deep Research
 
@@ -320,7 +321,7 @@ Ogni fase deve avere test unitari per casi normali, input vuoto/malformato, time
 
 ## 16. Deployment Vercel
 
-Configurare solo dopo che il runtime è presente. Verificare compatibilità delle API con limiti di durata, memoria, streaming, dimensione risposta e regioni Vercel. Impostare env vars nei secret settings, non nei file committati. Il deploy deve avere build riproducibile, health check, logging utile e rollback comprensibile. Documentare separatamente setup Pi, SearXNG e Cloudflare Tunnel senza segreti.
+Produzione attiva su Vercel. Le env restano nei secret settings, non nei file committati; deploy con `vercel deploy --prod --yes`. Verificare `/api/health`, ricerca reale, log redatti e rollback come descritto in `docs/deployment.md`. Il Quick Tunnel è operativo ma non stabile nel tempo: aggiornare `SEARXNG_BASE_URL` in Vercel dopo ogni suo riavvio.
 
 ## 17. Git e lavoro degli agenti
 

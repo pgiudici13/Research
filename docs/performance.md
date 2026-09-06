@@ -36,12 +36,12 @@ con una misura che dimostri il problema.
   margine; memoria e streaming NDJSON con flush regolare per UX (nessuna attesa
   attiva: il fetch è guidato da AbortController e timeout per singola chiamata).
 - Rate limit in-memory per funzione (`lib/server/rate-limit.ts`, 5/ora, 2
-  concorrenti per IP): i limiti noti di Vercel vanno verificati al deploy
-  (Step 32) — per più istanze serve uno store condiviso.
+  concorrenti per IP): è operativo su Vercel, ma per più istanze serve uno
+  store condiviso.
 - Budget e conteggi (query/fetch/LLM/byte) sono già i massimi per funzione: una
   ricerca tipica usa 3–6 query, ≤ 8 fetch, 1 chiamata LLM di sintesi.
 
-## Raspberry Pi (linee guida da applicare allo Step 30)
+## Raspberry Pi (deploy operativo)
 
 Il Pi 3B (1 GB RAM) esegue **solo SearXNG**:
 

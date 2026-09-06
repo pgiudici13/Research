@@ -36,7 +36,10 @@ Eventi del motore: `research.started` (id, budget), `phase.ended` (fase,
 `stoppedReason`, metriche complete), `engine.plan_failed`/
 `engine.synthesis_failed` (solo `errorCode` normalizzato). Gli errori loggati
 hanno sempre `code`/`phase`/`retryable` da `toErrorInfo` — mai messaggi grezzi
-fuori catalogo né `String(err)`.
+fuori catalogo né `String(err)`. Il fallback di ricerca aggiunge
+`search.searxng_compact_retry` (solo lunghezze, mai la query) e
+`search.duckduckgo_fallback`, utili per distinguere una query troppo specifica
+da un Pi/tunnel indisponibile.
 
 ## Metriche per-run
 

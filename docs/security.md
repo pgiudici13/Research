@@ -2,9 +2,8 @@
 
 Verifica sistematica dei vincoli di `AGENTS.md` §9 e §18 sullo stato reale del
 repository. Ogni voce elenca l'artefatto che la dimostra e il suo esito alla
-data dello Step 24. Le voci marcate **[deploy]** dipendono dalla Fase 23
-(Raspberry Pi / SearXNG / Cloudflare Tunnel) e restano aperte fino a quella
-fase; il codice applicativo è già costruito per rispettarle.
+data dell'ultimo deploy. Le verifiche di infrastruttura riportano lo stato
+operativo osservato e non includono mai token, hostname temporanei o segreti.
 
 | Voce (§9/§18) | Verifica nel repository | Esito |
 | --- | --- | --- |
@@ -12,8 +11,8 @@ fase; il codice applicativo è già costruito per rispettarle.
 | Password `1234` (compromessa) mai usata | lo scanner segnala qualunque `password…=1234` nei sorgenti | ✅ nessun match |
 | NVIDIA API / SearXNG server-side only | `tests/integration/security.test.ts`: nessun file client (`app`/`components`/`hooks`) importa `lib/server`/`lib/config/env`/logger/motore; nomi segreti solo nei file consentiti; assenza nei bundle `.next/static` | ✅ verde |
 | La chiave non è mai nel contesto del modello | nessun prompt costruisce messaggi con la chiave; `lib/server/llm/*` legge solo da env server-side | ✅ |
-| Autenticazione traffico Vercel→Pi (HTTPS + token) | `RESEARCH_INTERNAL_AUTH_TOKEN` previsto da env; uso e verifica sul lato Pi **[deploy Fase 23]** | ⏳ Fase 23 |
-| Pi mai esposto direttamente su Internet | solo Cloudflare Tunnel, nessuna porta inbound **[deploy Fase 23]** | ⏳ Fase 23 |
+| Autenticazione traffico Vercel→Pi (HTTPS + token) | Caddy richiede il Bearer `RESEARCH_INTERNAL_AUTH_TOKEN`; token configurato come secret sia sul Pi sia in Vercel | ✅ verificato |
+| Pi mai esposto direttamente su Internet | Caddy e SearXNG ascoltano solo su loopback; cloudflared crea una connessione outbound HTTPS | ✅ verificato |
 | Difesa SSRF | `lib/http/ssrf.ts` (IP/hostname privati, lookup DNS, allowlist) + redirect ri-validati nel fetcher; test `tests/unit/http/` | ✅ verde |
 | Sanitizzazione HTML/UI, mai HTML sorgente renderizzato | componenti solo-testo (Step 23), nessun `dangerouslySetInnerHTML`; regressione payload ostile `<img onerror>`/`<script>` in `tests/integration/security-render.test.tsx` | ✅ verde |
 | Limiti su input, prompt, query, fonti, dimensione, concorrenza, durata | `lib/config/limits.ts` + clamp; validazione `ResearchRequest`; body ≤ 16 KB; fuzz leggero in `security.test.ts` | ✅ verde |

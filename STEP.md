@@ -1928,7 +1928,7 @@ Step 2 (variabili: il token deve combaciare con `RESEARCH_INTERNAL_AUTH_TOKEN`),
 
 ## Step 31 — Cloudflare Tunnel: collegamento Vercel → Pi
 
-Stato: `[ ] PARZIALE` — cloudflared 2026.8.3 installato sul Pi (`/usr/local/bin/cloudflared`); manca il passo interattivo utente: `cloudflared tunnel login` (browser/account Cloudflare), `tunnel create deep-research`, `route dns` e avvio systemd. Config di esempio in `pi/cloudflared/config.example.yml`; unit systemd documentata nel file.
+Stato: `[x] OPERATIVO (Quick Tunnel)` — `cloudflared` è attivo sul Pi verso `127.0.0.1:8080`; il backend Vercel raggiunge Caddy/SearXNG tramite hostname HTTPS `trycloudflare.com` configurato come secret `SEARXNG_BASE_URL`. Il processo Quick Tunnel non è un servizio systemd e l'hostname cambia al riavvio; tunnel nominato, DNS e Access restano miglioramenti per uso stabile. Config di esempio in `pi/cloudflared/config.example.yml`.
 
 ### Obiettivo
 
@@ -1986,7 +1986,7 @@ Step 30 (servizio locale + auth), Step 2 (env).
 
 ## Step 32 — Deploy Vercel e configurazione produzione
 
-Stato: `[ ] DA FARE` — Nota (Step 1): progetto Vercel già creato e linkato da CLI — nome `deep-research`, scope `pedro13-projects` (`.vercel/project.json` nel working tree, gitignorato). Il deploy vero e proprio e le env var nei secret settings restano da fare in questo step.
+Stato: `[x] OPERATIVO` — progetto `deep-research` nello scope `pedro13-projects`, distribuito in produzione e raggiungibile tramite alias `deep-research-pearl.vercel.app`. I segreti NVIDIA e del collegamento Pi sono configurati in Vercel, mai nel repository. Checklist, diagnosi e rollback sono in `docs/deployment.md`.
 
 ### Obiettivo
 
