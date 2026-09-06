@@ -170,7 +170,6 @@ describe("deriveClaims", () => {
 
 describe("mapCitations (porta del motore)", () => {
   it("restituisce solo le citazioni usate, in ordine di primo utilizzo", () => {
-    const table = buildCitationTable([EV_A, EV_B, EV_C], [REC_A, REC_B, REC_C]);
     const sections: ReportSection[] = [
       {
         heading: "Risposta",
