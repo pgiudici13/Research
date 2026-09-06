@@ -72,7 +72,7 @@ const INTERNAL_LIMITS = {
   maxEvidencesTotal: 40,
   maxSearchResultsPerQuery: 10,
   maxFetchPerRound: 6,
-  plannerMaxTokens: 1_000,
+  plannerMaxTokens: 2_000,
   synthesisMaxTokens: 4_000,
   questionMinChars: 10,
   questionMaxChars: 1_000,

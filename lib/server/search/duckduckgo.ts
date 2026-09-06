@@ -7,7 +7,10 @@ import { appError, toErrorInfo } from "@/lib/errors";
 import type { SearchResultItem } from "@/lib/types";
 import type { SearchOutcome, SearchQuery, SearchRunContext } from "./searxng";
 
-const ENDPOINT = "https://html.duckduckgo.com/html/";
+const ENDPOINTS = [
+  "https://html.duckduckgo.com/html/",
+  "https://lite.duckduckgo.com/lite/",
+] as const;
 const USER_AGENT = "DeepResearch/0.1 (server; fallback search)";
 
 function decodeHtml(value: string): string {
@@ -19,14 +22,18 @@ function decodeHtml(value: string): string {
     .replace(/&gt;/g, ">");
 }
 
-function parseResults(html: string): SearchResultItem[] {
+export function parseDuckDuckGoResults(html: string): SearchResultItem[] {
   const items: SearchResultItem[] = [];
-  const pattern = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+  // DDG non garantisce l'ordine degli attributi nell'HTML. Catturiamo prima
+  // il tag completo e poi estraiamo class/href senza assumere una sequenza.
+  const pattern = /<a\b([^>]*class="[^"]*(?:\bresult__a\b|\bresult-link\b)[^"]*"[^>]*)>([\s\S]*?)<\/a>/gi;
   for (const match of html.matchAll(pattern)) {
     let url: URL;
     try {
-      const raw = decodeHtml(match[1]);
-      const parsed = new URL(raw, ENDPOINT);
+      const href = match[1].match(/\bhref="([^"]+)"/i)?.[1];
+      if (!href) continue;
+      const raw = decodeHtml(href);
+      const parsed = new URL(raw, ENDPOINTS[0]);
       const redirected = parsed.searchParams.get("uddg");
       url = new URL(redirected ? decodeURIComponent(redirected) : parsed.href);
     } catch {
@@ -50,17 +57,18 @@ export async function searchDuckDuckGo(
   const timeout = setTimeout(() => controller.abort(), getLimits().searchTimeoutMs);
   try {
     const signal = ctx.signal ? AbortSignal.any([ctx.signal, controller.signal]) : controller.signal;
-    const url = new URL(ENDPOINT);
-    url.searchParams.set("q", query.query);
-    const response = await fetchImpl(url, {
-      headers: { Accept: "text/html", "User-Agent": USER_AGENT },
-      signal,
-    });
-    if (!response.ok) {
-      return { ok: false, error: toErrorInfo(appError("E_SEARCH_UNAVAILABLE", { phase: "search", retryable: false })) };
+    for (const endpoint of ENDPOINTS) {
+      const url = new URL(endpoint);
+      url.searchParams.set("q", query.query);
+      const response = await fetchImpl(url, {
+        headers: { Accept: "text/html", "User-Agent": USER_AGENT },
+        signal,
+      });
+      if (!response.ok) continue;
+      const items = parseDuckDuckGoResults(await response.text());
+      if (items.length > 0) return { ok: true, empty: false, items };
     }
-    const items = parseResults(await response.text());
-    return items.length === 0 ? { ok: true, empty: true, items: [] } : { ok: true, empty: false, items };
+    return { ok: true, empty: true, items: [] };
   } catch {
     return { ok: false, error: toErrorInfo(appError("E_SEARCH_UNAVAILABLE", { phase: "search", retryable: false })) };
   } finally {
