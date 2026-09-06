@@ -9,8 +9,8 @@ Alla data dell’ultima ispezione (repository aggiornato dallo Step 1 di `STEP.m
 - repository senza commit su `main` (solo `git init`), con lo scaffold Next.js nel working tree;
 - file presenti: `.gitignore`, `AGENTS.md`, `STEP.md` (roadmap di implementazione), `.freebuff/project-id`, `README.md`;
 - stack applicativo **introdotto e verificato**: Next.js 16.3.4 (App Router, Turbopack, runtime Node), React 19.2.8, TypeScript `strict`, ESLint (`eslint-config-next`), Vitest come test runner (dev-dependency), npm come package manager;
-- struttura reale: `app/` (`layout.tsx`, `page.tsx` segnaposto, `globals.css`, `favicon.ico`), `tests/smoke.test.ts`, `scripts/check-secrets.mjs` (placeholder), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
-- NON ancora presenti: API route, client NVIDIA/SearXNG, motore di ricerca, `.env.example`, configurazione Vercel di deploy, servizi Raspberry Pi, SearXNG o Cloudflare Tunnel, componenti UI di ricerca;
+- struttura reale: `app/` (`layout.tsx`, `page.tsx` segnaposto, `globals.css`, `favicon.ico`), `.env.example` (solo placeholder), `lib/config/` (`env.ts`, `limits.ts`), `tests/smoke.test.ts`, `tests/unit/config/`, `scripts/check-secrets.mjs` (placeholder), `vitest.config.ts`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`;
+- NON ancora presenti: API route, client NVIDIA/SearXNG, motore di ricerca, configurazione Vercel di deploy, servizi Raspberry Pi, SearXNG o Cloudflare Tunnel, componenti UI di ricerca;
 - nessuna variabile d’ambiente definita nel repository; nessun segreto presente.
 
 Tutto ciò che segue è quindi una specifica operativa per l’implementazione, salvo quando marcato **esistente/verificato**. Non dichiarare mai come funzionante un componente che non è presente nel codice.
@@ -76,6 +76,7 @@ next.config.ts
 eslint.config.mjs
 vitest.config.ts
 .gitignore
+.env.example              (solo placeholder)
 scripts/
   check-secrets.mjs        (placeholder, logica completa nello Step 24)
 app/
@@ -83,8 +84,13 @@ app/
   page.tsx                 (segnaposto: nessuna funzionalità ancora)
   globals.css
   favicon.ico
+lib/
+  config/
+    env.ts                 (loader env tipizzato, server-only)
+    limits.ts              (budget/limiti della pipeline, tabella C.2 di STEP.md)
 tests/
   smoke.test.ts
+  unit/config/             (test di env.ts e limits.ts)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/` (config, tipi, validate, errori, logger, http, server/llm, server/search), `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti), `.env.example`. Nominare i percorsi effettivi in questo file quando il codice esisterà.
@@ -140,6 +146,8 @@ RESEARCH_MAX_FETCH_BYTES=
 ```
 
 Le variabili non necessarie non vanno aggiunte. Preferire secret manager di Vercel/Cloudflare o configurazione locale non tracciata. `CLOUDFLARE_TUNNEL_HOSTNAME` può essere non segreta, ma il token del tunnel non lo è e non va documentato in chiaro.
+
+Con lo Step 2 i `RESEARCH_*` e gli altri valori sono implementati in `lib/config/env.ts` (default, parsing, clamp) e `lib/config/limits.ts` (tabella budget completa di STEP.md). Variabile operativa facoltativa introdotta con lo Step 2: `LOG_LEVEL` (`debug|info|warn|error`, default `info`).
 
 ## 9. Sicurezza
 

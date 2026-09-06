@@ -311,7 +311,7 @@ Nessuna (parte da repository vuoto). Questo step sblocca tutti gli altri.
 
 ## Step 2 — Configurazione variabili d'ambiente e loader server-only
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `.env.example` (solo placeholder), `lib/config/env.ts` (parseEnv puro + getEnv memoizzato, default/clamp/errori, `resetEnvCache` per test) e `lib/config/limits.ts` (computeLimits + getLimits + checkBudget; costanti interne C.2). Aggiunta variabile operativa `LOG_LEVEL`. Test: 13 verdi (env: 7, limits: 5, smoke: 1); typecheck/lint/build verdi. `AGENTS.md` §5/§8 aggiornati.
 
 ### Obiettivo
 
