@@ -377,7 +377,7 @@ Step 1.
 
 ## Step 3 — Tipi di dominio condivisi e costanti di fase
 
-Stato: `[ ] DA FARE`
+Stato: `[x] COMPLETATO` — Nota: creati `lib/types/research.ts` (stati/fasi, request/plan/query, risultati/fonti, evidenze/claim/conflitti, report/citazioni, ErrorInfo), `lib/types/progress.ts` (unione eventi `ProgressEvent` + `PROGRESS_EVENT_TYPES`), `lib/types/api.ts` (ApiErrorBody, `API_SCHEMA_VERSION`), `lib/types/index.ts`. Stati e fasi definiti in `research.ts` e ri-esportati da `progress.ts` (evita import circolari con `ResearchReport`) — deviazione minima di collocazione documentata. Test: 18 verdi; typecheck/lint puliti.
 
 ### Obiettivo
 

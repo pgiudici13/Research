@@ -88,9 +88,15 @@ lib/
   config/
     env.ts                 (loader env tipizzato, server-only)
     limits.ts              (budget/limiti della pipeline, tabella C.2 di STEP.md)
+  types/
+    research.ts            (tipi di dominio: piano, fonti, evidenze, report…)
+    progress.ts            (stati/fasi + eventi wire, import-safe client/server)
+    api.ts                 (ApiErrorBody, schemaVersion; re-export ResearchRequest)
+    index.ts
 tests/
   smoke.test.ts
   unit/config/             (test di env.ts e limits.ts)
+  unit/types/              (test di serializzabilità/completezza dei tipi)
 ```
 
 Struttura prevista dagli step successivi (da creare solo quando il codice esiste): `app/api/` (route), `components/`, `lib/` (config, tipi, validate, errori, logger, http, server/llm, server/search), `research/` (pipeline e motore), `pi/` (documentazione deploy, mai segreti), `.env.example`. Nominare i percorsi effettivi in questo file quando il codice esisterà.
